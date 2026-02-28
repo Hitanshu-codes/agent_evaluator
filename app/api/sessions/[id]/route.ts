@@ -31,7 +31,31 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(session)
+    let evaluation = null
+    if (session.status === 'complete') {
+      const { data: evalData, error: evalError } = await supabase
+        .from('evaluations')
+        .select('*')
+        .eq('session_id', id)
+        .single()
+
+      if (!evalError && evalData) {
+        evaluation = evalData
+      }
+    }
+
+    const { data: messages, error: messagesError } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('session_id', id)
+      .order('created_at', { ascending: true })
+
+    return NextResponse.json({
+      ...session,
+      evaluation,
+      messages: messages || [],
+      message_count: messages?.length || 0
+    })
   } catch (error) {
     console.error('Session fetch error:', error)
     return NextResponse.json(

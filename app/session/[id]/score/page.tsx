@@ -2,48 +2,226 @@
 
 import Link from "next/link"
 import { Check, ChevronDown, ArrowRight, Copy, Loader2 } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { LogoutButton } from "@/components/logout-button"
 
-const dimensions = [
-  { name: "Agent Identity Clarity", score: 9, max: 11, percent: 82, color: "yellow", note: "Role is defined but tone and persona are vague." },
-  { name: "Structural Completeness", score: 12, max: 12, percent: 100, color: "green", note: "All three layers present: job, always-do, never-do." },
-  { name: "Instruction Precision", score: 8, max: 12, percent: 67, color: "yellow", note: "IF/THEN used but SAY clauses are missing from most rules." },
-  { name: "Few-Shot Examples", score: 5, max: 11, percent: 45, color: "red", note: "Only simple examples provided. Hard edge cases not covered." },
-  { name: "Guardrails and Pressure Holding", score: 10, max: 12, percent: 83, color: "green", note: "Agent held position well under pushback in scenario 3." },
-  { name: "Edge Case Coverage", score: 7, max: 11, percent: 64, color: "yellow", note: "Cancellation in transit edge case not anticipated." },
-  { name: "PII and Data Discipline", score: 11, max: 11, percent: 100, color: "green", note: "No PII issues. Agent correctly refused credential requests." },
-  { name: "Prompt Failure Anticipation", score: 5, max: 10, percent: 50, color: "red", note: "No fallback instruction defined for unresolvable situations." },
-  { name: "Eval Readiness", score: 7, max: 10, percent: 70, color: "yellow", note: "Most instructions testable but two rules are too vague." },
-]
+interface DimensionScore {
+  score: number
+  max: number
+  note: string
+}
 
-const strengths = [
-  "Clear structural layers — job, rules, guardrails all present.",
-  "Strong PII discipline — agent never requested restricted data.",
-  "Good pressure handling — agent held position in 2 of 3 pushback tests.",
-]
+interface Evaluation {
+  overall_score: number
+  dimension_scores: {
+    agent_identity_clarity: DimensionScore
+    structural_completeness: DimensionScore
+    instruction_precision: DimensionScore
+    few_shot_examples: DimensionScore
+    guardrails_pressure_holding: DimensionScore
+    edge_case_coverage: DimensionScore
+    pii_data_discipline: DimensionScore
+    prompt_failure_anticipation: DimensionScore
+    eval_readiness: DimensionScore
+  }
+  strengths: string[]
+  improvements: string[]
+}
 
-const improvements = [
-  "Add SAY clauses to every IF/THEN rule so the agent has exact language to use.",
-  "Add at least two examples for hard edge cases — a return outside the window and an EMI double-deduction scenario.",
-  "Define a fallback — if the agent cannot resolve in two exchanges it must offer escalation to a senior agent.",
-]
+interface Session {
+  id: string
+  problem_statement: string
+  attempt_number: number
+  status: string
+  validation_flags: Array<{ id: string; level: string; message: string }> | null
+  completed_at: string | null
+  evaluation: Evaluation | null
+  message_count: number
+}
 
-function getBarColor(color: string) {
+const DIMENSION_LABELS: Record<string, string> = {
+  agent_identity_clarity: "Agent Identity Clarity",
+  structural_completeness: "Structural Completeness",
+  instruction_precision: "Instruction Precision",
+  few_shot_examples: "Few-Shot Examples",
+  guardrails_pressure_holding: "Guardrails and Pressure Holding",
+  edge_case_coverage: "Edge Case Coverage",
+  pii_data_discipline: "PII and Data Discipline",
+  prompt_failure_anticipation: "Prompt Failure Anticipation",
+  eval_readiness: "Eval Readiness"
+}
+
+function getScoreColor(score: number, max: number): string {
+  const percent = (score / max) * 100
+  if (percent >= 70) return "green"
+  if (percent >= 50) return "yellow"
+  return "red"
+}
+
+function getBarColorClass(color: string): string {
   if (color === "green") return "bg-green-600"
   if (color === "yellow") return "bg-yellow-500"
   return "bg-red-500"
 }
 
+function getOverallScoreStyle(score: number): { border: string; bg: string } {
+  if (score >= 70) {
+    return { border: "#1E7E34", bg: "rgba(30, 126, 52, 0.08)" }
+  } else if (score >= 50) {
+    return { border: "#EAB308", bg: "rgba(234, 179, 8, 0.08)" }
+  }
+  return { border: "#DC2626", bg: "rgba(220, 38, 38, 0.08)" }
+}
+
+function formatDate(dateString: string | null): string {
+  if (!dateString) return "N/A"
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
 export default function ScorePage() {
   const params = useParams()
   const sessionId = params.id as string
+  
+  const [session, setSession] = useState<Session | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
   const [flagsOpen, setFlagsOpen] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null
+
+    async function fetchSession() {
+      try {
+        const response = await fetch(`/api/sessions/${sessionId}`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch session')
+        }
+        const data = await response.json()
+        setSession(data)
+
+        if (data.status === 'complete' && data.evaluation) {
+          setIsLoading(false)
+          if (pollInterval) {
+            clearInterval(pollInterval)
+          }
+        } else if (data.status === 'evaluating') {
+          setIsLoading(true)
+        } else {
+          setIsLoading(false)
+        }
+      } catch (err) {
+        console.error('Error fetching session:', err)
+        setError('Failed to load session data')
+        setIsLoading(false)
+      }
+    }
+
+    fetchSession()
+
+    pollInterval = setInterval(() => {
+      if (session?.status !== 'complete') {
+        fetchSession()
+      }
+    }, 2000)
+
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval)
+      }
+    }
+  }, [sessionId])
+
+  useEffect(() => {
+    if (session?.status === 'complete') {
+      setIsLoading(false)
+    }
+  }, [session?.status])
+
+  async function copyScoreSummary() {
+    if (!session?.evaluation) return
+
+    const eval_ = session.evaluation
+    const summary = `Score Card Summary
+==================
+Overall Score: ${eval_.overall_score}/100
+Session: ${session.problem_statement}
+Attempt: #${session.attempt_number}
+
+Strengths:
+${eval_.strengths.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+Improvements:
+${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+`
+    
+    try {
+      await navigator.clipboard.writeText(summary)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
+  if (isLoading || !session?.evaluation) {
+    return (
+      <div className="min-h-screen bg-background">
+        <nav className="sticky top-0 z-50 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
+          <Link href="/dashboard" className="flex items-center gap-1">
+            <span className="font-mono font-bold text-xl tracking-tight text-foreground">nudgeable</span>
+            <span className="w-2 h-2 rounded-full bg-primary" />
+          </Link>
+          <div className="flex items-center gap-6">
+            <Link 
+              href="/session/new"
+              className="bg-primary text-primary-foreground font-semibold px-4 py-2 text-sm hover:bg-primary/90 transition-colors"
+            >
+              New Session
+            </Link>
+            <LogoutButton className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
+          </div>
+        </nav>
+
+        <main className="max-w-[800px] mx-auto px-6 py-10">
+          <div className="flex flex-col items-center py-20">
+            <div className="w-[130px] h-[130px] rounded-full border-[6px] border-border bg-card flex items-center justify-center">
+              <Loader2 className="w-10 h-10 text-muted-foreground animate-spin" />
+            </div>
+            <p className="mt-4 font-medium text-foreground">Evaluating your prompt</p>
+            <p className="text-sm text-muted-foreground">This usually takes 10 to 15 seconds</p>
+            {error && (
+              <p className="mt-4 text-sm text-red-500">{error}</p>
+            )}
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  const evaluation = session.evaluation
+  const scoreStyle = getOverallScoreStyle(evaluation.overall_score)
+
+  const dimensions = Object.entries(evaluation.dimension_scores).map(([key, value]) => ({
+    key,
+    name: DIMENSION_LABELS[key] || key,
+    score: value.score,
+    max: value.max,
+    percent: Math.round((value.score / value.max) * 100),
+    color: getScoreColor(value.score, value.max),
+    note: value.note
+  }))
+
+  const warningFlags = session.validation_flags?.filter(f => f.level === 'WARNING') || []
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar */}
       <nav className="sticky top-0 z-50 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-1">
           <span className="font-mono font-bold text-xl tracking-tight text-foreground">nudgeable</span>
@@ -61,32 +239,28 @@ export default function ScorePage() {
       </nav>
 
       <main className="max-w-[800px] mx-auto px-6 py-10 pb-24">
-        {/* Loading State Reference */}
-        <div className="mb-16 pb-16 border-b border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-6 text-center">Loading State Reference</p>
-          <div className="flex flex-col items-center">
-            <div className="w-[130px] h-[130px] rounded-full border-6 border-border bg-card flex items-center justify-center">
-              <Loader2 className="w-10 h-10 text-muted-foreground animate-spin" />
-            </div>
-            <p className="mt-4 font-medium text-foreground">Evaluating your prompt</p>
-            <p className="text-sm text-muted-foreground">This usually takes 10 to 15 seconds</p>
-          </div>
-        </div>
-
         {/* Overall Score */}
         <div className="flex flex-col items-center mb-12">
           <div 
             className="w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center"
             style={{ 
-              border: "6px solid #1E7E34",
-              backgroundColor: "rgba(30, 126, 52, 0.08)"
+              border: `6px solid ${scoreStyle.border}`,
+              backgroundColor: scoreStyle.bg
             }}
           >
-            <span className="font-mono font-bold text-[42px] leading-none text-foreground">74</span>
+            <span className="font-mono font-bold text-[42px] leading-none text-foreground">
+              {evaluation.overall_score}
+            </span>
             <span className="text-sm text-muted-foreground">/100</span>
           </div>
-          <p className="mt-4 font-bold text-foreground">Attempt 2 — Flipkart Customer Resolution Agent</p>
-          <p className="text-sm text-muted-foreground">Evaluated on 28 Jan 2025 · 6 exchanges</p>
+          <p className="mt-4 font-bold text-foreground">
+            Attempt {session.attempt_number} — {session.problem_statement.length > 40 
+              ? session.problem_statement.substring(0, 40) + '...' 
+              : session.problem_statement}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Evaluated on {formatDate(session.completed_at)} · {session.message_count} exchanges
+          </p>
         </div>
 
         {/* Score Breakdown */}
@@ -94,14 +268,14 @@ export default function ScorePage() {
           <h2 className="text-lg font-semibold text-foreground mb-6">Score Breakdown</h2>
           <div className="space-y-5">
             {dimensions.map((dim) => (
-              <div key={dim.name}>
+              <div key={dim.key}>
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-medium text-foreground">{dim.name}</span>
                   <span className="font-mono font-bold text-foreground">{dim.score}/{dim.max}</span>
                 </div>
                 <div className="h-2 bg-border rounded-full overflow-hidden mb-1">
                   <div 
-                    className={`h-full ${getBarColor(dim.color)} rounded-full transition-all`}
+                    className={`h-full ${getBarColorClass(dim.color)} rounded-full transition-all`}
                     style={{ width: `${dim.percent}%` }}
                   />
                 </div>
@@ -122,7 +296,7 @@ export default function ScorePage() {
                 <span className="font-semibold text-green-700">What Worked</span>
               </div>
               <div className="space-y-3">
-                {strengths.map((item, idx) => (
+                {evaluation.strengths.map((item, idx) => (
                   <div 
                     key={idx}
                     className="p-3 rounded-lg text-sm text-green-800"
@@ -141,7 +315,7 @@ export default function ScorePage() {
                 <span className="font-semibold text-amber-700">Improve Next Time</span>
               </div>
               <div className="space-y-3">
-                {improvements.map((item, idx) => (
+                {evaluation.improvements.map((item, idx) => (
                   <div 
                     key={idx}
                     className="p-3 bg-card border-l-4 border-yellow-500 text-sm text-foreground"
@@ -155,22 +329,28 @@ export default function ScorePage() {
         </div>
 
         {/* Validation Flags Collapsible */}
-        <div className="mb-12">
-          <button 
-            onClick={() => setFlagsOpen(!flagsOpen)}
-            className="flex items-center gap-2 text-foreground font-semibold mb-4 hover:opacity-80 transition-opacity"
-          >
-            <ChevronDown className={`w-5 h-5 transition-transform ${flagsOpen ? "" : "-rotate-90"}`} />
-            Phase 1 Validation Flags
-          </button>
-          {flagsOpen && (
-            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-sm text-amber-800">
-                <span className="font-semibold">V-05</span> — No guardrail section found — impacted score by approximately 2 points.
-              </p>
-            </div>
-          )}
-        </div>
+        {warningFlags.length > 0 && (
+          <div className="mb-12">
+            <button 
+              onClick={() => setFlagsOpen(!flagsOpen)}
+              className="flex items-center gap-2 text-foreground font-semibold mb-4 hover:opacity-80 transition-opacity"
+            >
+              <ChevronDown className={`w-5 h-5 transition-transform ${flagsOpen ? "" : "-rotate-90"}`} />
+              Phase 1 Validation Flags
+            </button>
+            {flagsOpen && (
+              <div className="space-y-2">
+                {warningFlags.map((flag) => (
+                  <div key={flag.id} className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                    <p className="text-sm text-amber-800">
+                      <span className="font-semibold">{flag.id}</span> — {flag.message}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Bottom Buttons */}
         <div className="flex flex-wrap items-center gap-4">
@@ -186,9 +366,12 @@ export default function ScorePage() {
           >
             View All Sessions
           </Link>
-          <button className="ml-auto flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <button 
+            onClick={copyScoreSummary}
+            className="ml-auto flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
             <Copy className="w-4 h-4" />
-            Copy Score Summary
+            {copied ? 'Copied!' : 'Copy Score Summary'}
           </button>
         </div>
       </main>
