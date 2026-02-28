@@ -2,6 +2,60 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getUserFromCookie, getOrCreateUser } from '@/lib/auth'
 import { supabase } from '@/lib/supabase'
 
+export async function GET() {
+  try {
+    const username = await getUserFromCookie()
+    
+    if (!username) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const user = await getOrCreateUser(username)
+
+    const { data: sessions, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Sessions fetch error:', error)
+      return NextResponse.json(
+        { error: 'Failed to fetch sessions' },
+        { status: 500 }
+      )
+    }
+
+    console.log('Sessions found:', sessions?.length || 0)
+
+    const sessionsWithEval = await Promise.all(
+      (sessions || []).map(async (session) => {
+        let evaluation = null
+        if (session.status === 'complete') {
+          const { data: evalData } = await supabase
+            .from('evaluations')
+            .select('overall_score, dimension_scores, strengths, improvements')
+            .eq('session_id', session.id)
+            .single()
+          evaluation = evalData
+        }
+        return { ...session, evaluation }
+      })
+    )
+
+    return NextResponse.json({ sessions: sessionsWithEval })
+  } catch (error) {
+    console.error('Sessions fetch error:', error)
+    return NextResponse.json(
+      { error: 'An error occurred while fetching sessions' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const username = await getUserFromCookie()

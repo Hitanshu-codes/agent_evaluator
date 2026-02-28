@@ -165,16 +165,19 @@ Based on the system prompt quality and how the agent performed in the conversati
       )
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError, data: updatedSession } = await supabase
       .from('sessions')
       .update({ 
         status: 'complete',
         completed_at: new Date().toISOString()
       })
       .eq('id', id)
+      .select()
 
     if (updateError) {
       console.error('Error updating session status:', updateError)
+    } else {
+      console.log('Session status updated to complete:', updatedSession)
     }
 
     return NextResponse.json({

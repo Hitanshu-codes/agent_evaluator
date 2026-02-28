@@ -1,29 +1,68 @@
 "use client"
 
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
+import { Loader2 } from 'lucide-react'
 import { LogoutButton } from '@/components/logout-button'
 
-const chartData = [
-  { attempt: 'Attempt 1', score: 42, date: '10 Jan 2025' },
-  { attempt: 'Attempt 2', score: 55, date: '14 Jan 2025' },
-  { attempt: 'Attempt 3', score: 61, date: '18 Jan 2025' },
-  { attempt: 'Attempt 4', score: 74, date: '22 Jan 2025' },
-  { attempt: 'Attempt 5', score: 83, date: '28 Jan 2025' },
-]
+interface Attempt {
+  attempt_number: number
+  overall_score: number
+  created_at: string
+  session_id: string
+  dimension_scores: Record<string, { score: number; max: number; note: string }> | null
+}
 
-const tableData = [
-  { attempt: 1, date: '10 Jan 2025', score: 42, lowestDimension: 'Few-Shot Examples', status: 'Complete' },
-  { attempt: 2, date: '14 Jan 2025', score: 55, lowestDimension: 'Structural Completeness', status: 'Complete' },
-  { attempt: 3, date: '18 Jan 2025', score: 61, lowestDimension: 'Instruction Precision', status: 'Complete' },
-  { attempt: 4, date: '22 Jan 2025', score: 74, lowestDimension: 'Prompt Failure Anticipation', status: 'Complete' },
-  { attempt: 5, date: '28 Jan 2025', score: 83, lowestDimension: 'Eval Readiness', status: 'Complete' },
-]
+interface UseCase {
+  problem_statement: string
+  attempts: Attempt[]
+  last_updated: string
+}
 
-function getScoreBadgeColor(score: number) {
+const DIMENSION_LABELS: Record<string, string> = {
+  agent_identity_clarity: "Agent Identity Clarity",
+  structural_completeness: "Structural Completeness",
+  instruction_precision: "Instruction Precision",
+  few_shot_examples: "Few-Shot Examples",
+  guardrails_pressure_holding: "Guardrails & Pressure Holding",
+  edge_case_coverage: "Edge Case Coverage",
+  pii_data_discipline: "PII & Data Discipline",
+  prompt_failure_anticipation: "Prompt Failure Anticipation",
+  eval_readiness: "Eval Readiness"
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { 
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  })
+}
+
+function getScoreBadgeColor(score: number): string {
   if (score >= 70) return 'bg-green-100 text-green-800'
   if (score >= 50) return 'bg-yellow-100 text-yellow-800'
   return 'bg-red-100 text-red-800'
+}
+
+function getLowestDimension(dimensionScores: Record<string, { score: number; max: number; note: string }> | null): string {
+  if (!dimensionScores) return 'N/A'
+  
+  let lowestKey = ''
+  let lowestRatio = 1
+
+  for (const [key, value] of Object.entries(dimensionScores)) {
+    const ratio = value.score / value.max
+    if (ratio < lowestRatio) {
+      lowestRatio = ratio
+      lowestKey = key
+    }
+  }
+
+  return DIMENSION_LABELS[lowestKey] || lowestKey || 'N/A'
 }
 
 function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<{ payload: { score: number; date: string } }> }) {
@@ -39,6 +78,88 @@ function CustomTooltip({ active, payload }: { active?: boolean; payload?: Array<
 }
 
 export default function HistoryPage() {
+  const params = useParams()
+  const problemStatement = decodeURIComponent(params.id as string)
+  
+  const [useCase, setUseCase] = useState<UseCase | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+        const response = await fetch('/api/users/me/progress')
+        if (!response.ok) {
+          throw new Error('Failed to fetch progress')
+        }
+        
+        const data = await response.json()
+        const found = (data.useCases || []).find(
+          (uc: UseCase) => uc.problem_statement === problemStatement
+        )
+        
+        if (found) {
+          setUseCase(found)
+        } else {
+          setError('Use case not found')
+        }
+      } catch (err) {
+        console.error('Error fetching history:', err)
+        setError('Failed to load history data')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [problemStatement])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+      </div>
+    )
+  }
+
+  if (error || !useCase) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 bg-card border-b border-border">
+          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <Link href="/dashboard" className="flex items-center">
+              <span className="font-mono text-xl font-medium text-foreground">Nudgeable</span>
+              <span className="w-2 h-2 rounded-full bg-primary ml-1"></span>
+            </Link>
+          </div>
+        </header>
+        <main className="max-w-7xl mx-auto px-6 py-8">
+          <div className="bg-card border border-border p-8 text-center">
+            <p className="text-muted-foreground">{error || 'Use case not found'}</p>
+            <Link href="/dashboard" className="text-primary underline mt-4 inline-block">
+              Back to Dashboard
+            </Link>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  const chartData = useCase.attempts.map(attempt => ({
+    attempt: `Attempt ${attempt.attempt_number}`,
+    score: attempt.overall_score,
+    date: formatDate(attempt.created_at)
+  }))
+
+  const bestAttempt = useCase.attempts.reduce((best, current) => 
+    current.overall_score > best.overall_score ? current : best
+  , useCase.attempts[0])
+
+  const firstAttemptDate = useCase.attempts.length > 0 
+    ? formatDate(useCase.attempts[0].created_at)
+    : 'N/A'
+
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
@@ -53,7 +174,7 @@ export default function HistoryPage() {
             </Link>
             
             <Link 
-              href="/history/1" 
+              href={`/history/${encodeURIComponent(useCase.problem_statement)}`}
               className="relative text-foreground hover:text-foreground/80 transition-colors font-medium"
             >
               History
@@ -62,7 +183,6 @@ export default function HistoryPage() {
           </div>
           
           <div className="flex items-center gap-4">
-            <span className="text-foreground">Hello Riya</span>
             <Link 
               href="/session/new"
               className="bg-primary text-primary-foreground font-medium px-4 py-2 hover:bg-primary/90 transition-colors"
@@ -78,9 +198,9 @@ export default function HistoryPage() {
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
         {/* Heading */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Flipkart Customer Resolution Agent</h1>
+          <h1 className="text-2xl font-bold text-foreground">{useCase.problem_statement}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            5 attempts · Best score: 83 · Started 10 Jan 2025
+            {useCase.attempts.length} attempt{useCase.attempts.length !== 1 ? 's' : ''} · Best score: {bestAttempt.overall_score} · Started {firstAttemptDate}
           </p>
         </div>
 
@@ -122,7 +242,7 @@ export default function HistoryPage() {
         {/* Personal Best card */}
         <div className="bg-primary p-4">
           <p className="text-primary-foreground">
-            <span className="font-bold">Personal Best</span> — 83 out of 100 on Attempt 5 · 28 Jan 2025
+            <span className="font-bold">Personal Best</span> — {bestAttempt.overall_score} out of 100 on Attempt {bestAttempt.attempt_number} · {formatDate(bestAttempt.created_at)}
           </p>
         </div>
 
@@ -140,20 +260,22 @@ export default function HistoryPage() {
               </tr>
             </thead>
             <tbody>
-              {tableData.map((row) => (
-                <tr key={row.attempt} className="border-t border-border">
-                  <td className="px-4 py-3 text-sm text-foreground">Attempt {row.attempt}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{row.date}</td>
+              {useCase.attempts.map((attempt) => (
+                <tr key={attempt.session_id} className="border-t border-border">
+                  <td className="px-4 py-3 text-sm text-foreground">Attempt {attempt.attempt_number}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(attempt.created_at)}</td>
                   <td className="px-4 py-3">
-                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getScoreBadgeColor(row.score)}`}>
-                      {row.score}
+                    <span className={`inline-block px-2 py-1 text-xs font-medium rounded ${getScoreBadgeColor(attempt.overall_score)}`}>
+                      {attempt.overall_score}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{row.lowestDimension}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{row.status}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {getLowestDimension(attempt.dimension_scores)}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">Complete</td>
                   <td className="px-4 py-3">
                     <Link 
-                      href={`/session/${row.attempt}/score`}
+                      href={`/session/${attempt.session_id}/score`}
                       className="text-sm text-foreground underline hover:no-underline"
                     >
                       View Score Card
@@ -163,6 +285,16 @@ export default function HistoryPage() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Try Again Button */}
+        <div>
+          <Link
+            href={`/session/new?from=${useCase.attempts[useCase.attempts.length - 1].session_id}`}
+            className="inline-block bg-primary text-primary-foreground font-medium px-6 py-3 hover:bg-primary/90 transition-colors"
+          >
+            Try Again
+          </Link>
         </div>
       </main>
     </div>
