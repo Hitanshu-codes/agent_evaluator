@@ -43,6 +43,18 @@ function formatTime(dateString: string) {
   })
 }
 
+function renderFormattedText(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const boldText = part.slice(2, -2)
+      return <strong key={index}>{boldText}</strong>
+    }
+    return <span key={index}>{part}</span>
+  })
+}
+
 export default function SimulatePage() {
   const params = useParams()
   const router = useRouter()
@@ -322,7 +334,11 @@ export default function SimulatePage() {
                         : "bg-primary text-primary-foreground"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.role === "assistant" 
+                        ? renderFormattedText(message.content) 
+                        : message.content}
+                    </p>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     {formatTime(message.created_at)}
