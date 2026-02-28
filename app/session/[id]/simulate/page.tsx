@@ -72,7 +72,7 @@ export default function SimulatePage() {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const messageCount = messages.length
-  const minExchangesMet = messageCount >= 6
+  const minExchangesMet = true
 
   useEffect(() => {
     loadSession()
@@ -253,16 +253,10 @@ export default function SimulatePage() {
         {/* Bottom Stats */}
         <div className="p-4 border-t border-border">
           <p className="text-xs font-mono text-foreground">{messageCount} / 50 exchanges</p>
-          {minExchangesMet ? (
-            <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-              <Check className="w-3 h-3" />
-              Minimum exchanges met
-            </p>
-          ) : (
-            <p className="text-xs text-muted-foreground mt-1">
-              {6 - messageCount} more exchanges needed
-            </p>
-          )}
+          <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
+            <Check className="w-3 h-3" />
+            Ready to evaluate
+          </p>
         </div>
       </div>
 

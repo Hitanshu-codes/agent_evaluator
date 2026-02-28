@@ -81,13 +81,6 @@ export async function POST(
 
     const messageCount = messages?.length || 0
 
-    if (messageCount < 6) {
-      return NextResponse.json(
-        { error: 'Minimum of 6 exchanges required before evaluation' },
-        { status: 400 }
-      )
-    }
-
     await supabase
       .from('sessions')
       .update({ status: 'evaluating' })

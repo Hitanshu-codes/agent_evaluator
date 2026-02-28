@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef, Suspense } from 'react'
-import { X, AlertTriangle, Info, Check, Loader2, Upload, FileSpreadsheet, Trash2 } from 'lucide-react'
+import { X, Loader2, Upload, FileSpreadsheet, Trash2 } from 'lucide-react'
 import { LogoutButton } from '@/components/logout-button'
 
 interface ValidationFlag {
@@ -132,7 +132,7 @@ WHAT YOU MUST NEVER DO
     }
   }
 
-  async function handleValidate() {
+  async function handleContinue() {
     setIsValidating(true)
     setFlags([])
     setHasValidated(false)
@@ -157,27 +157,9 @@ WHAT YOU MUST NEVER DO
       const { session_id } = await createResponse.json()
       setSessionId(session_id)
 
-      const validateResponse = await fetch(`/api/sessions/${session_id}/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-
-      if (!validateResponse.ok) {
-        const error = await validateResponse.json()
-        throw new Error(error.error || 'Failed to validate session')
-      }
-
-      const { flags: validationFlags, hasErrors: hasValidationErrors } = await validateResponse.json()
-      
-      setFlags(validationFlags)
-      setHasErrors(hasValidationErrors)
-      setHasValidated(true)
-
-      if (!hasValidationErrors) {
-        router.push(`/session/${session_id}/simulate`)
-      }
+      router.push(`/session/${session_id}/simulate`)
     } catch (error) {
-      console.error('Validation error:', error)
+      console.error('Error creating session:', error)
       setFlags([{
         id: 'SYS-01',
         level: 'ERROR',
@@ -191,20 +173,18 @@ WHAT YOU MUST NEVER DO
   }
 
   const errorFlags = flags.filter(f => f.level === 'ERROR')
-  const warningFlags = flags.filter(f => f.level === 'WARNING')
-  const infoFlags = flags.filter(f => f.level === 'INFO')
 
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center">
+          <Link href="/dashboard" className="flex items-center">
             <span className="font-mono text-xl font-medium text-foreground">
               Nudgeable
             </span>
             <span className="w-2 h-2 rounded-full bg-primary ml-1"></span>
-          </div>
+          </Link>
           
           <div className="flex items-center gap-4">
             <Link 
@@ -389,88 +369,19 @@ WHAT YOU MUST NEVER DO
           </div>
         </form>
 
-        {/* Validation Results */}
-        {hasValidated && (
+        {/* Error Display */}
+        {hasValidated && hasErrors && (
           <div className="mt-12 space-y-4">
-            <h3 className="text-lg font-bold text-foreground">Validation Results</h3>
-            
-            {/* Success state - no flags */}
-            {flags.length === 0 && (
-              <div className="flex items-start gap-3 p-4 bg-green-50 border-l-4 border-green-500">
-                <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-foreground font-medium">
-                    Prompt validated successfully. No issues found.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Error flags */}
             {errorFlags.map((flag) => (
               <div key={flag.id} className="flex items-start gap-3 p-4 bg-red-50 border-l-4 border-red-500">
                 <X className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-foreground">{flag.id}</span>
-                    <span className="px-2 py-0.5 bg-red-500 text-white text-xs font-medium rounded">
-                      ERROR — blocks simulation
-                    </span>
-                  </div>
                   <p className="text-sm text-foreground">
                     {flag.message}
                   </p>
                 </div>
               </div>
             ))}
-
-            {/* Warning flags */}
-            {warningFlags.map((flag) => (
-              <div key={flag.id} className="flex items-start gap-3 p-4 bg-amber-50 border-l-4 border-amber-500">
-                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-foreground">{flag.id}</span>
-                    <span className="px-2 py-0.5 bg-amber-500 text-white text-xs font-medium rounded">
-                      WARNING
-                    </span>
-                  </div>
-                  <p className="text-sm text-foreground">
-                    {flag.message}
-                  </p>
-                </div>
-              </div>
-            ))}
-
-            {/* Info flags */}
-            {infoFlags.map((flag) => (
-              <div key={flag.id} className="flex items-start gap-3 p-4 bg-blue-50 border-l-4 border-blue-500">
-                <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-sm font-medium text-foreground">{flag.id}</span>
-                    <span className="px-2 py-0.5 bg-blue-500 text-white text-xs font-medium rounded">
-                      INFO
-                    </span>
-                  </div>
-                  <p className="text-sm text-foreground">
-                    {flag.message}
-                  </p>
-                </div>
-              </div>
-            ))}
-
-            {/* Success with warnings/info only */}
-            {!hasErrors && flags.length > 0 && (
-              <div className="flex items-start gap-3 p-4 bg-green-50 border-l-4 border-green-500 mt-4">
-                <Check className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm text-foreground font-medium">
-                    Validation passed. Redirecting to simulation...
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </main>
@@ -482,32 +393,21 @@ WHAT YOU MUST NEVER DO
             System prompt: {systemPrompt.length} characters
           </span>
           
-          {hasValidated && !hasErrors && sessionId ? (
-            <button
-              type="button"
-              onClick={() => router.push(`/session/${sessionId}/simulate`)}
-              className="bg-primary text-primary-foreground font-medium px-6 py-2.5 hover:bg-primary/90 transition-colors flex items-center gap-2"
-            >
-              <Check className="w-4 h-4" />
-              Continue to Simulation
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleValidate}
-              disabled={isValidating || !problemStatement.trim() || !systemPrompt.trim()}
-              className="bg-primary text-primary-foreground font-medium px-6 py-2.5 hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isValidating ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Validating...
-                </>
-              ) : (
-                'Validate and Continue'
-              )}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleContinue}
+            disabled={isValidating || !problemStatement.trim() || !systemPrompt.trim()}
+            className="bg-primary text-primary-foreground font-medium px-6 py-2.5 hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isValidating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Creating Session...
+              </>
+            ) : (
+              'Continue to Simulation'
+            )}
+          </button>
         </div>
       </div>
     </div>
