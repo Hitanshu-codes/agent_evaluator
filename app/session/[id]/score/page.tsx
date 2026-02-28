@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Check, ChevronDown, ArrowRight, Copy, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { LogoutButton } from "@/components/logout-button"
 
 const dimensions = [
   { name: "Agent Identity Clarity", score: 9, max: 11, percent: 82, color: "yellow", note: "Role is defined but tone and persona are vague." },
@@ -52,9 +53,7 @@ export default function ScorePage() {
           >
             New Session
           </Link>
-          <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Logout
-          </Link>
+          <LogoutButton className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
         </div>
       </nav>
 

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { X, AlertTriangle, Info, Check } from 'lucide-react'
+import { LogoutButton } from '@/components/logout-button'
 
 export default function NewSessionPage() {
   return (
@@ -24,12 +25,7 @@ export default function NewSessionPage() {
             >
               New Session
             </Link>
-            <Link 
-              href="/login" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Logout
-            </Link>
+            <LogoutButton />
           </div>
         </div>
       </header>

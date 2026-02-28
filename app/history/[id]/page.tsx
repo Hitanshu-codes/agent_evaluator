@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer } from 'recharts'
+import { LogoutButton } from '@/components/logout-button'
 
 const chartData = [
   { attempt: 'Attempt 1', score: 42, date: '10 Jan 2025' },
@@ -68,12 +69,7 @@ export default function HistoryPage() {
             >
               New Session
             </Link>
-            <Link 
-              href="/login" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Logout
-            </Link>
+            <LogoutButton />
           </div>
         </div>
       </header>

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { UseCaseCard } from '@/components/use-case-card'
 import { InProgressCard } from '@/components/in-progress-card'
 import { EmptyState } from '@/components/empty-state'
+import { LogoutButton } from '@/components/logout-button'
 
 export default function DashboardPage() {
   return (
@@ -34,12 +35,7 @@ export default function DashboardPage() {
             >
               New Session
             </Link>
-            <Link 
-              href="/login" 
-              className="text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Logout
-            </Link>
+            <LogoutButton />
           </div>
         </div>
       </header>
