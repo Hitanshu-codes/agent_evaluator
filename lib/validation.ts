@@ -40,11 +40,14 @@ const FINANCIAL_KEYWORDS = [
 
 export function runValidationChecks(session: SessionFields): ValidationFlag[] {
   const flags: ValidationFlag[] = []
-  const prompt = session.compiled_prompt.toLowerCase()
   const systemPrompt = session.system_prompt.toLowerCase()
+  const useCasePrompt = (session.use_case_prompt || '').toLowerCase()
+  
+  // Combine only system prompt and use case prompt for validation (exclude context_data)
+  const promptsToValidate = session.system_prompt + ' ' + (session.use_case_prompt || '')
 
-  // V-01: Check for phone number patterns in prompt
-  if (PII_PATTERNS.phone.test(session.compiled_prompt)) {
+  // V-01: Check for phone number patterns in system/use-case prompts only
+  if (PII_PATTERNS.phone.test(promptsToValidate)) {
     flags.push({
       id: 'V-01',
       level: 'ERROR',
@@ -52,8 +55,8 @@ export function runValidationChecks(session: SessionFields): ValidationFlag[] {
     })
   }
 
-  // V-02: Check for email addresses in prompt
-  if (PII_PATTERNS.email.test(session.compiled_prompt)) {
+  // V-02: Check for email addresses in system/use-case prompts only
+  if (PII_PATTERNS.email.test(promptsToValidate)) {
     flags.push({
       id: 'V-02',
       level: 'ERROR',
@@ -61,8 +64,8 @@ export function runValidationChecks(session: SessionFields): ValidationFlag[] {
     })
   }
 
-  // V-03: Check for credit card or financial account patterns
-  if (PII_PATTERNS.creditCard.test(session.compiled_prompt) || PII_PATTERNS.aadhaar.test(session.compiled_prompt)) {
+  // V-03: Check for credit card or financial account patterns in system/use-case prompts only
+  if (PII_PATTERNS.creditCard.test(promptsToValidate) || PII_PATTERNS.aadhaar.test(promptsToValidate)) {
     flags.push({
       id: 'V-03',
       level: 'ERROR',
@@ -113,7 +116,6 @@ export function runValidationChecks(session: SessionFields): ValidationFlag[] {
   }
 
   // V-07: Check if context data is provided when use case mentions data-related keywords
-  const useCasePrompt = (session.use_case_prompt || '').toLowerCase()
   const mentionsData = 
     useCasePrompt.includes('order') || 
     useCasePrompt.includes('customer') || 
