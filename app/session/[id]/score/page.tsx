@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Check, ChevronDown, ArrowRight, Copy, Loader2 } from "lucide-react"
 import { useState } from "react"
+import { useParams } from "next/navigation"
 import { LogoutButton } from "@/components/logout-button"
 
 const dimensions = [
@@ -36,6 +37,8 @@ function getBarColor(color: string) {
 }
 
 export default function ScorePage() {
+  const params = useParams()
+  const sessionId = params.id as string
   const [flagsOpen, setFlagsOpen] = useState(true)
 
   return (
@@ -172,7 +175,7 @@ export default function ScorePage() {
         {/* Bottom Buttons */}
         <div className="flex flex-wrap items-center gap-4">
           <Link
-            href="/session/new"
+            href={`/session/new?from=${sessionId}`}
             className="bg-primary text-primary-foreground font-semibold px-6 py-3 hover:bg-primary/90 transition-colors"
           >
             Try Again
