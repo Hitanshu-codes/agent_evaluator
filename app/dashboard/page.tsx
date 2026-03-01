@@ -51,7 +51,6 @@ function getPhaseFromStatus(status: string): { label: string; status: 'completed
         { label: 'Phase 2', status: 'pending' },
         { label: 'Phase 3', status: 'pending' }
       ]
-    case 'validated':
     case 'simulating':
       return [
         { label: 'Phase 1', status: 'completed' },
@@ -77,7 +76,6 @@ function getResumeLink(session: Session): string {
   switch (session.status) {
     case 'draft':
       return `/session/new?from=${session.id}`
-    case 'validated':
     case 'simulating':
       return `/session/${session.id}/simulate`
     case 'evaluating':
@@ -119,7 +117,7 @@ export default function DashboardPage() {
         if (sessionsRes.ok) {
           const sessionsData = await sessionsRes.json()
           const inProgress = (sessionsData.sessions || []).filter(
-            (s: Session) => ['draft', 'validated', 'simulating', 'evaluating'].includes(s.status)
+            (s: Session) => ['draft', 'simulating', 'evaluating'].includes(s.status)
           )
           setInProgressSessions(inProgress)
         }

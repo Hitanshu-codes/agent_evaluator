@@ -116,7 +116,7 @@ export async function POST(
       console.error('Error saving assistant message:', assistantMsgError)
     }
 
-    if (session.status === 'validated') {
+    if (session.status === 'draft') {
       await supabase
         .from('sessions')
         .update({ status: 'simulating' })

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Check, ChevronDown, ArrowRight, Copy, Loader2 } from "lucide-react"
+import { Check, ArrowRight, Copy, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { LogoutButton } from "@/components/logout-button"
@@ -39,7 +39,6 @@ interface Session {
   problem_statement: string
   attempt_number: number
   status: string
-  validation_flags: Array<{ id: string; level: string; message: string }> | null
   completed_at: string | null
   evaluation: Evaluation | null
   message_count: number
@@ -94,7 +93,6 @@ export default function ScorePage() {
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
-  const [flagsOpen, setFlagsOpen] = useState(true)
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
@@ -220,8 +218,6 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
     color: getScoreColor(value.score, value.max),
     note: value.note
   }))
-
-  const warningFlags = session.validation_flags?.filter(f => f.level === 'WARNING') || []
 
   return (
     <div className="min-h-screen bg-background">
@@ -359,30 +355,6 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
             </div>
           </div>
         </div>
-
-        {/* Validation Flags Collapsible */}
-        {warningFlags.length > 0 && (
-          <div className="mb-12">
-            <button
-              onClick={() => setFlagsOpen(!flagsOpen)}
-              className="flex items-center gap-2 text-foreground font-semibold mb-4 hover:opacity-80 transition-opacity"
-            >
-              <ChevronDown className={`w-5 h-5 transition-transform ${flagsOpen ? "" : "-rotate-90"}`} />
-              Phase 1 Validation Flags
-            </button>
-            {flagsOpen && (
-              <div className="space-y-2">
-                {warningFlags.map((flag) => (
-                  <div key={flag.id} className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-sm text-amber-800">
-                      <span className="font-semibold">{flag.id}</span> — {flag.message}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Bottom Buttons */}
         <div className="flex flex-wrap items-center gap-4">
