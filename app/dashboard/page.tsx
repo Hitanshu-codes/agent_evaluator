@@ -20,14 +20,6 @@ interface UseCase {
   last_updated: string
 }
 
-interface Session {
-  id: string
-  problem_statement: string
-  attempt_number: number
-  status: string
-  created_at: string
-}
-
 function getRelativeTime(dateString: string): string {
   const date = new Date(dateString)
   const now = new Date()
@@ -43,51 +35,8 @@ function getRelativeTime(dateString: string): string {
   return `${diffDays} days ago`
 }
 
-function getPhaseFromStatus(status: string): { label: string; status: 'completed' | 'active' | 'pending' }[] {
-  switch (status) {
-    case 'draft':
-      return [
-        { label: 'Phase 1', status: 'active' },
-        { label: 'Phase 2', status: 'pending' },
-        { label: 'Phase 3', status: 'pending' }
-      ]
-    case 'simulating':
-      return [
-        { label: 'Phase 1', status: 'completed' },
-        { label: 'Phase 2', status: 'active' },
-        { label: 'Phase 3', status: 'pending' }
-      ]
-    case 'evaluating':
-      return [
-        { label: 'Phase 1', status: 'completed' },
-        { label: 'Phase 2', status: 'completed' },
-        { label: 'Phase 3', status: 'active' }
-      ]
-    default:
-      return [
-        { label: 'Phase 1', status: 'pending' },
-        { label: 'Phase 2', status: 'pending' },
-        { label: 'Phase 3', status: 'pending' }
-      ]
-  }
-}
-
-function getResumeLink(session: Session): string {
-  switch (session.status) {
-    case 'draft':
-      return `/session/new?from=${session.id}`
-    case 'simulating':
-      return `/session/${session.id}/simulate`
-    case 'evaluating':
-      return `/session/${session.id}/score`
-    default:
-      return `/session/${session.id}/score`
-  }
-}
-
 export default function DashboardPage() {
   const [useCases, setUseCases] = useState<UseCase[]>([])
-  const [inProgressSessions, setInProgressSessions] = useState<Session[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [username, setUsername] = useState('User')
 
@@ -104,22 +53,11 @@ export default function DashboardPage() {
     async function fetchData() {
       setIsLoading(true)
       try {
-        const [progressRes, sessionsRes] = await Promise.all([
-          fetch('/api/users/me/progress'),
-          fetch('/api/sessions')
-        ])
+        const progressRes = await fetch('/api/users/me/progress')
 
         if (progressRes.ok) {
           const progressData = await progressRes.json()
           setUseCases(progressData.useCases || [])
-        }
-
-        if (sessionsRes.ok) {
-          const sessionsData = await sessionsRes.json()
-          const inProgress = (sessionsData.sessions || []).filter(
-            (s: Session) => ['draft', 'simulating', 'evaluating'].includes(s.status)
-          )
-          setInProgressSessions(inProgress)
         }
       } catch (err) {
         console.error('Error fetching dashboard data:', err)
@@ -139,7 +77,7 @@ export default function DashboardPage() {
     )
   }
 
-  const hasData = useCases.length > 0 || inProgressSessions.length > 0
+  const hasData = useCases.length > 0
 
   return (
     <div className="min-h-screen bg-background">
@@ -189,6 +127,26 @@ export default function DashboardPage() {
 
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-6 py-8 space-y-10">
+        {/* Stats Cards - Always visible */}
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-card border border-border p-6">
+              <p className="text-sm text-muted-foreground mb-1">Total Sessions</p>
+              <p className="text-3xl font-bold text-foreground">{totalSessions}</p>
+            </div>
+            <div className="bg-card border border-border p-6">
+              <p className="text-sm text-muted-foreground mb-1">Personal Best</p>
+              <p className="text-3xl font-bold text-foreground">
+                {personalBest}<span className="text-lg font-normal text-muted-foreground">/100</span>
+              </p>
+            </div>
+            <div className="bg-card border border-border p-6">
+              <p className="text-sm text-muted-foreground mb-1">Avg Score Last 3</p>
+              <p className="text-3xl font-bold text-foreground">{avgLastThree}</p>
+            </div>
+          </div>
+        </section>
+
         {!hasData ? (
           /* Empty State */
           <section>
@@ -267,70 +225,6 @@ export default function DashboardPage() {
                             View History
                           </Link>
                         </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </section>
-            )}
-
-            {/* Stats Row */}
-            <section>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-card border border-border p-6">
-                  <p className="text-sm text-muted-foreground mb-1">Total Sessions</p>
-                  <p className="text-3xl font-bold text-foreground">{totalSessions}</p>
-                </div>
-                <div className="bg-card border border-border p-6">
-                  <p className="text-sm text-muted-foreground mb-1">Personal Best</p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {personalBest}<span className="text-lg font-normal text-muted-foreground">/100</span>
-                  </p>
-                </div>
-                <div className="bg-card border border-border p-6">
-                  <p className="text-sm text-muted-foreground mb-1">Avg Score Last 3</p>
-                  <p className="text-3xl font-bold text-foreground">{avgLastThree}</p>
-                </div>
-              </div>
-            </section>
-
-            {/* In Progress */}
-            {inProgressSessions.length > 0 && (
-              <section>
-                <h2 className="text-xl font-bold text-foreground mb-4">In Progress</h2>
-                <div className="space-y-4">
-                  {inProgressSessions.map((session) => {
-                    const phases = getPhaseFromStatus(session.status)
-                    return (
-                      <div key={session.id} className="bg-card border border-border border-l-4 border-l-amber-500 p-6">
-                        <h3 className="font-bold text-foreground text-lg mb-4">
-                          {session.problem_statement.length > 60
-                            ? session.problem_statement.substring(0, 60) + '...'
-                            : session.problem_statement} — Attempt {session.attempt_number}
-                        </h3>
-
-                        <div className="flex gap-2 mb-4">
-                          {phases.map((phase, index) => (
-                            <div
-                              key={index}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full ${phase.status === 'completed'
-                                ? 'bg-green-100 text-green-700'
-                                : phase.status === 'active'
-                                  ? 'bg-amber-100 text-amber-700'
-                                  : 'bg-gray-100 text-muted-foreground'
-                                }`}
-                            >
-                              {phase.label}
-                            </div>
-                          ))}
-                        </div>
-
-                        <Link
-                          href={getResumeLink(session)}
-                          className="inline-block bg-primary text-primary-foreground font-medium px-4 py-2 hover:bg-primary/90 transition-colors"
-                        >
-                          Resume
-                        </Link>
                       </div>
                     )
                   })}
