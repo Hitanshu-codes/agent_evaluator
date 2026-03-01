@@ -176,11 +176,8 @@ WHAT YOU MUST NEVER DO
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center">
-            <span className="font-mono text-xl font-medium text-foreground">
-              Nudgeable
-            </span>
-            <span className="w-2 h-2 rounded-full bg-primary ml-1"></span>
+          <Link href="/dashboard">
+            <img src="/logo.png" alt="Nudgeable" className="h-12" />
           </Link>
           
           <div className="flex items-center gap-4">
@@ -369,7 +366,7 @@ WHAT YOU MUST NEVER DO
       <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
         <div className="max-w-[720px] mx-auto px-6 py-4 flex items-center justify-between">
           <span className="text-muted-foreground text-sm">
-            System prompt: {systemPrompt.length} characters
+            System prompt: {systemPrompt.length} characters ({Math.floor(systemPrompt.length / 4)} tokens)
           </span>
           
           <button

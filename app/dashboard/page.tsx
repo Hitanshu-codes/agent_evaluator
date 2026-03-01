@@ -94,9 +94,9 @@ export default function DashboardPage() {
   const totalSessions = useCases.reduce((sum, uc) => sum + uc.attempts.length, 0)
   const allScores = useCases.flatMap(uc => uc.attempts.map(a => a.overall_score))
   const personalBest = allScores.length > 0 ? Math.max(...allScores) : 0
-  
+
   const lastThreeScores = allScores.slice(-3)
-  const avgLastThree = lastThreeScores.length > 0 
+  const avgLastThree = lastThreeScores.length > 0
     ? (lastThreeScores.reduce((a, b) => a + b, 0) / lastThreeScores.length).toFixed(1)
     : '0'
 
@@ -147,15 +147,12 @@ export default function DashboardPage() {
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center">
-              <span className="font-mono text-xl font-medium text-foreground">
-                Nudgeable
-              </span>
-              <span className="w-2 h-2 rounded-full bg-primary ml-1"></span>
+            <Link href="/dashboard">
+              <img src="/logo.png" alt="Nudgeable" className="h-12" />
             </Link>
-            
+
             {useCases.length > 0 && (
-              <Link 
+              <Link
                 href={`/history/${encodeURIComponent(useCases[0].problem_statement)}`}
                 className="relative text-foreground hover:text-foreground/80 transition-colors font-medium"
               >
@@ -164,7 +161,7 @@ export default function DashboardPage() {
               </Link>
             )}
           </div>
-          
+
           <div className="flex items-center gap-4">
             <span className="text-foreground">Hello {username}</span>
             <Link
@@ -216,11 +213,11 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {useCases.map((useCase, index) => {
                     const latestAttempt = useCase.attempts[useCase.attempts.length - 1]
-                    const previousAttempt = useCase.attempts.length > 1 
-                      ? useCase.attempts[useCase.attempts.length - 2] 
+                    const previousAttempt = useCase.attempts.length > 1
+                      ? useCase.attempts[useCase.attempts.length - 2]
                       : null
-                    const delta = previousAttempt 
-                      ? latestAttempt.overall_score - previousAttempt.overall_score 
+                    const delta = previousAttempt
+                      ? latestAttempt.overall_score - previousAttempt.overall_score
                       : 0
                     const sparklineData = useCase.attempts.map(a => a.overall_score)
                     const isFirstAttempt = useCase.attempts.length === 1
@@ -228,14 +225,14 @@ export default function DashboardPage() {
                     return (
                       <div key={index} className="bg-card border border-border p-6">
                         <h3 className="font-bold text-foreground text-lg mb-1">
-                          {useCase.problem_statement.length > 50 
+                          {useCase.problem_statement.length > 50
                             ? useCase.problem_statement.substring(0, 50) + '...'
                             : useCase.problem_statement}
                         </h3>
                         <p className="text-muted-foreground text-sm mb-4">
                           Last updated {getRelativeTime(useCase.last_updated)}
                         </p>
-                        
+
                         <div className="flex items-center gap-6 mb-4">
                           <Sparkline data={sparklineData} />
                           <ScoreCircle score={latestAttempt.overall_score} />
@@ -255,7 +252,7 @@ export default function DashboardPage() {
                             </span>
                           </div>
                         </div>
-                        
+
                         <div className="flex gap-3">
                           <Link
                             href={`/session/new?from=${latestAttempt.session_id}`}
@@ -307,28 +304,27 @@ export default function DashboardPage() {
                     return (
                       <div key={session.id} className="bg-card border border-border border-l-4 border-l-amber-500 p-6">
                         <h3 className="font-bold text-foreground text-lg mb-4">
-                          {session.problem_statement.length > 60 
+                          {session.problem_statement.length > 60
                             ? session.problem_statement.substring(0, 60) + '...'
                             : session.problem_statement} — Attempt {session.attempt_number}
                         </h3>
-                        
+
                         <div className="flex gap-2 mb-4">
                           {phases.map((phase, index) => (
                             <div
                               key={index}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full ${
-                                phase.status === 'completed'
-                                  ? 'bg-green-100 text-green-700'
-                                  : phase.status === 'active'
-                                    ? 'bg-amber-100 text-amber-700'
-                                    : 'bg-gray-100 text-muted-foreground'
-                              }`}
+                              className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-full ${phase.status === 'completed'
+                                ? 'bg-green-100 text-green-700'
+                                : phase.status === 'active'
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-gray-100 text-muted-foreground'
+                                }`}
                             >
                               {phase.label}
                             </div>
                           ))}
                         </div>
-                        
+
                         <Link
                           href={getResumeLink(session)}
                           className="inline-block bg-primary text-primary-foreground font-medium px-4 py-2 hover:bg-primary/90 transition-colors"

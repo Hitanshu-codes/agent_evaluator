@@ -44,9 +44,7 @@ export default function LoginPage() {
       <div className="w-full max-w-[400px] bg-card border border-border p-10">
         {/* Logo */}
         <div className="flex justify-center mb-2">
-          <span className="font-mono text-2xl font-medium bg-primary text-primary-foreground px-4 py-2 rounded-full">
-            Nudgeable
-          </span>
+          <img src="/logo.png" alt="Nudgeable" className="h-14" />
         </div>
         
         {/* Subtitle */}

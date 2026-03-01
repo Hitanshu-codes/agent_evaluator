@@ -175,9 +175,8 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
     return (
       <div className="min-h-screen bg-background">
         <nav className="sticky top-0 z-50 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-1">
-            <span className="font-mono font-bold text-xl tracking-tight text-foreground">nudgeable</span>
-            <span className="w-2 h-2 rounded-full bg-primary" />
+          <Link href="/dashboard">
+            <img src="/logo.png" alt="Nudgeable" className="h-12" />
           </Link>
           <div className="flex items-center gap-6">
             <Link
@@ -222,9 +221,8 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
   return (
     <div className="min-h-screen bg-background">
       <nav className="sticky top-0 z-50 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
-        <Link href="/dashboard" className="flex items-center gap-1">
-          <span className="font-mono font-bold text-xl tracking-tight text-foreground">nudgeable</span>
-          <span className="w-2 h-2 rounded-full bg-primary" />
+        <Link href="/dashboard">
+          <img src="/logo.png" alt="Nudgeable" className="h-12" />
         </Link>
         <div className="flex items-center gap-6">
           <Link

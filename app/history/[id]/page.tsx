@@ -128,9 +128,8 @@ export default function HistoryPage() {
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 bg-card border-b border-border">
           <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center">
-              <span className="font-mono text-xl font-medium text-foreground">Nudgeable</span>
-              <span className="w-2 h-2 rounded-full bg-primary ml-1"></span>
+            <Link href="/dashboard">
+              <img src="/logo.png" alt="Nudgeable" className="h-12" />
             </Link>
           </div>
         </header>
@@ -166,11 +165,8 @@ export default function HistoryPage() {
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center">
-              <span className="font-mono text-xl font-medium text-foreground">
-                Nudgeable
-              </span>
-              <span className="w-2 h-2 rounded-full bg-primary ml-1"></span>
+            <Link href="/dashboard">
+              <img src="/logo.png" alt="Nudgeable" className="h-12" />
             </Link>
             
             <Link 
