@@ -12,19 +12,24 @@ interface DimensionScore {
   note: string
 }
 
+interface PromptEfficiency {
+  total_tokens: number
+  redundancy_flag: 'none' | 'low' | 'moderate' | 'high'
+  compression_suggestion: string
+}
+
 interface Evaluation {
   overall_score: number
   dimension_scores: {
-    agent_identity_clarity: DimensionScore
-    structural_completeness: DimensionScore
-    instruction_precision: DimensionScore
-    few_shot_examples: DimensionScore
-    guardrails_pressure_holding: DimensionScore
-    edge_case_coverage: DimensionScore
-    pii_data_discipline: DimensionScore
-    prompt_failure_anticipation: DimensionScore
-    eval_readiness: DimensionScore
+    role_definition: DimensionScore
+    structure: DimensionScore
+    instruction_clarity: DimensionScore
+    examples: DimensionScore
+    guardrails: DimensionScore
+    failure_handling: DimensionScore
+    conversation_quality: DimensionScore
   }
+  prompt_efficiency?: PromptEfficiency
   strengths: string[]
   improvements: string[]
 }
@@ -41,15 +46,13 @@ interface Session {
 }
 
 const DIMENSION_LABELS: Record<string, string> = {
-  agent_identity_clarity: "Agent Identity Clarity",
-  structural_completeness: "Structural Completeness",
-  instruction_precision: "Instruction Precision",
-  few_shot_examples: "Few-Shot Examples",
-  guardrails_pressure_holding: "Guardrails and Pressure Holding",
-  edge_case_coverage: "Edge Case Coverage",
-  pii_data_discipline: "PII and Data Discipline",
-  prompt_failure_anticipation: "Prompt Failure Anticipation",
-  eval_readiness: "Eval Readiness"
+  role_definition: "Role Definition",
+  structure: "Structure",
+  instruction_clarity: "Instruction Clarity",
+  examples: "Examples",
+  guardrails: "Guardrails",
+  failure_handling: "Failure Handling",
+  conversation_quality: "Conversation Quality"
 }
 
 function getScoreColor(score: number, max: number): string {
@@ -284,6 +287,36 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
             ))}
           </div>
         </div>
+
+        {/* Prompt Efficiency */}
+        {evaluation.prompt_efficiency && (
+          <div className="mb-12">
+            <h2 className="text-lg font-semibold text-foreground mb-6">Prompt Efficiency</h2>
+            <div className="p-4 bg-card border border-border rounded-lg space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Total Tokens</span>
+                <span className="font-mono font-bold text-foreground">{evaluation.prompt_efficiency.total_tokens.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Redundancy</span>
+                <span className={`font-semibold px-2 py-0.5 rounded text-sm ${
+                  evaluation.prompt_efficiency.redundancy_flag === 'none' ? 'bg-green-100 text-green-700' :
+                  evaluation.prompt_efficiency.redundancy_flag === 'low' ? 'bg-blue-100 text-blue-700' :
+                  evaluation.prompt_efficiency.redundancy_flag === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {evaluation.prompt_efficiency.redundancy_flag}
+                </span>
+              </div>
+              {evaluation.prompt_efficiency.compression_suggestion && (
+                <div className="pt-2 border-t border-border">
+                  <p className="text-sm text-muted-foreground mb-1">Compression Suggestion</p>
+                  <p className="text-sm text-foreground italic">{evaluation.prompt_efficiency.compression_suggestion}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Strengths and Improvements */}
         <div className="mb-12">

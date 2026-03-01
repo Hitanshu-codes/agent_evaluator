@@ -4,33 +4,46 @@ import { supabase } from '@/lib/supabase'
 // @ts-ignore - @google/genai types may not be available yet
 import { GoogleGenAI } from '@google/genai'
 
-const JUDGE_SYSTEM_PROMPT = `You are an expert AI prompt engineering evaluator for the Flipkart customer resolution team. Your job is to score prompts across 9 dimensions and provide actionable feedback.
+const JUDGE_SYSTEM_PROMPT = `You are an AI prompt engineering evaluator for the Flipkart customer resolution team. Score prompts and agent conversations across 7 dimensions and provide actionable feedback.
 
-Score the prompt and conversation across these 9 dimensions:
+Scoring scale (each dimension out of 10):
+0-3: Missing or broken. 4-5: Present but weak. 6-7: Functional with gaps. 8-9: Strong. 10: Excellent.
 
-1. Agent Identity Clarity (max 11): How clearly is the agent's role, name, tone, and persona defined?
-2. Structural Completeness (max 12): Are all three layers present - job description, always-do rules, never-do rules?
-3. Instruction Precision (max 12): Are instructions specific with IF/THEN conditions and SAY clauses?
-4. Few-Shot Examples (max 11): Are there examples covering simple and hard edge cases?
-5. Guardrails and Pressure Holding (max 12): Does the agent maintain boundaries under customer pressure?
-6. Edge Case Coverage (max 11): Are unusual scenarios like cancellation-in-transit anticipated?
-7. PII and Data Discipline (max 11): Does the agent avoid requesting or exposing sensitive data?
-8. Prompt Failure Anticipation (max 10): Are fallback instructions defined for unresolvable situations?
-9. Eval Readiness (max 10): Are instructions testable and measurable?
+Dimensions:
 
-Return ONLY valid JSON with no preamble, no markdown code fences, and no explanation. The JSON must have this exact structure:
+1. Role Definition: Is the agent's role, tone, scope, and boundaries clearly stated? Low: vague or missing. High: specifies exact domain, tone, and what is outside scope.
+
+2. Structure: Are three layers present in the right order? Layer 1: Role. Layer 2: Must-do rules. Layer 3: Must-never rules. Low: rules mixed together or critical rules buried. High: layers separated, highest-stakes rules first.
+
+3. Instruction Clarity: Are instructions commands with IF/THEN conditions and SAY/DO clauses, not policy explanations? Low: describes policy instead of commanding action, vague conditions. High: every scenario has a trigger, action, and response.
+
+4. Examples: Are there examples with all three parts (data context, customer message, ideal response)? Do they cover hard scenarios? Low: missing, happy-path only, or incomplete. High: covers angry customers, wrong claims, and escalation.
+
+5. Guardrails: Are there specific NEVER rules covering data safety, false promises, and hallucination prevention? Low: missing, vague, or buried in paragraphs. High: prominent, specific, covers data safety.
+
+6. Failure Handling: Are there fallbacks for empty data fields, out-of-scope questions, and escalation to humans? Low: no fallback for missing data or uncovered scenarios. High: every field has a fallback, catch-all rule exists, escalation path is clear.
+
+7. Conversation Quality: In the actual chat, did the agent follow instructions, handle pressure, stay accurate, and maintain tone? Low: contradicted rules, hallucinated, or caved under pressure. High: consistent, accurate, composed.
+
+Overall score calculation (weights hidden from user):
+Role Definition x1.2 + Structure x1.4 + Instruction Clarity x1.8 + Examples x1.6 + Guardrails x1.6 + Failure Handling x1.4 + Conversation Quality x1.0 = overall score out of 100. Round to nearest integer.
+
+Return ONLY valid JSON. No preamble, no markdown fences, no explanation.
 {
   "overall_score": <integer 0-100>,
   "dimensions": {
-    "agent_identity_clarity": { "score": <int>, "max": 11, "note": "<one sentence>" },
-    "structural_completeness": { "score": <int>, "max": 12, "note": "<one sentence>" },
-    "instruction_precision": { "score": <int>, "max": 12, "note": "<one sentence>" },
-    "few_shot_examples": { "score": <int>, "max": 11, "note": "<one sentence>" },
-    "guardrails_pressure_holding": { "score": <int>, "max": 12, "note": "<one sentence>" },
-    "edge_case_coverage": { "score": <int>, "max": 11, "note": "<one sentence>" },
-    "pii_data_discipline": { "score": <int>, "max": 11, "note": "<one sentence>" },
-    "prompt_failure_anticipation": { "score": <int>, "max": 10, "note": "<one sentence>" },
-    "eval_readiness": { "score": <int>, "max": 10, "note": "<one sentence>" }
+    "role_definition": { "score": <int 0-10>, "max": 10, "note": "<one sentence>" },
+    "structure": { "score": <int 0-10>, "max": 10, "note": "<one sentence>" },
+    "instruction_clarity": { "score": <int 0-10>, "max": 10, "note": "<one sentence>" },
+    "examples": { "score": <int 0-10>, "max": 10, "note": "<one sentence>" },
+    "guardrails": { "score": <int 0-10>, "max": 10, "note": "<one sentence>" },
+    "failure_handling": { "score": <int 0-10>, "max": 10, "note": "<one sentence>" },
+    "conversation_quality": { "score": <int 0-10>, "max": 10, "note": "<one sentence>" }
+  },
+  "prompt_efficiency": {
+    "total_tokens": <integer>,
+    "redundancy_flag": "<none / low / moderate / high>",
+    "compression_suggestion": "<one specific sentence or rule that could be shortened or removed without losing function>"
   },
   "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
   "improvements": ["<specific rewrite suggestion 1>", "<specific rewrite suggestion 2>", "<specific rewrite suggestion 3>"]
@@ -147,7 +160,8 @@ Based on the system prompt quality and how the agent performed in the conversati
         overall_score: evaluation.overall_score,
         dimension_scores: evaluation.dimensions,
         strengths: evaluation.strengths,
-        improvements: evaluation.improvements
+        improvements: evaluation.improvements,
+        prompt_efficiency: evaluation.prompt_efficiency
       })
 
     if (insertError) {
@@ -178,6 +192,7 @@ Based on the system prompt quality and how the agent performed in the conversati
       evaluation: {
         overall_score: evaluation.overall_score,
         dimensions: evaluation.dimensions,
+        prompt_efficiency: evaluation.prompt_efficiency,
         strengths: evaluation.strengths,
         improvements: evaluation.improvements
       }

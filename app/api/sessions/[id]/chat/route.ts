@@ -10,7 +10,7 @@ export async function POST(
 ) {
   try {
     const username = await getUserFromCookie()
-    
+
     if (!username) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -64,7 +64,7 @@ export async function POST(
       )
     }
 
-    const history: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = 
+    const history: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> =
       (existingMessages || []).map(msg => ({
         role: msg.role === 'assistant' ? 'model' as const : 'user' as const,
         parts: [{ text: msg.content }]
@@ -84,7 +84,8 @@ export async function POST(
       model: 'gemini-2.5-flash',
       history: history,
       config: {
-        systemInstruction: session.compiled_prompt
+        systemInstruction: session.compiled_prompt,
+        temperature: 0.5
       }
     })
 
@@ -130,16 +131,16 @@ export async function POST(
     })
   } catch (error: unknown) {
     console.error('Chat error:', error)
-    
+
     const errorMessage = error instanceof Error ? error.message : String(error)
-    
+
     if (errorMessage.includes('429') || errorMessage.includes('quota') || errorMessage.includes('RESOURCE_EXHAUSTED')) {
       return NextResponse.json(
         { error: 'API quota exceeded. Please wait a moment and try again, or the daily limit may have been reached.' },
         { status: 429 }
       )
     }
-    
+
     return NextResponse.json(
       { error: 'An error occurred during chat. Please try again.' },
       { status: 500 }
