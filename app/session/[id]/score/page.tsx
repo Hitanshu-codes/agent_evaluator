@@ -48,10 +48,10 @@ const DIMENSION_LABELS: Record<string, string> = {
   role_definition: "Role Definition",
   structure: "Structure",
   instruction_clarity: "Instruction Clarity",
-  examples: "Few-Shot Examples",
+  examples: "Examples",
   guardrails: "Guardrails",
   failure_handling: "Failure Handling",
-  conversation_quality: "Response Latency"
+  conversation_quality: "Conversation Quality"
 }
 
 function getScorePercent(score: number, max: number): number {
