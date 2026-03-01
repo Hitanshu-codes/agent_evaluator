@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     const user = await getOrCreateUser(username)
     
     const body = await request.json()
-    const { problem_statement, system_prompt, use_case_prompt, context_data } = body
+    const { problem_statement, system_prompt, context_data } = body
 
     if (!problem_statement || !system_prompt) {
       return NextResponse.json(
@@ -81,7 +81,6 @@ export async function POST(request: NextRequest) {
 
     const compiled_prompt = [
       system_prompt,
-      use_case_prompt || '',
       context_data || ''
     ].filter(Boolean).join('\n\n---\n\n')
 
@@ -99,7 +98,6 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         problem_statement,
         system_prompt,
-        use_case_prompt: use_case_prompt || null,
         context_data: context_data || null,
         compiled_prompt,
         attempt_number,

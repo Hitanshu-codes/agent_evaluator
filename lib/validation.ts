@@ -8,7 +8,6 @@ export interface ValidationFlag {
 
 interface SessionFields {
   system_prompt: string
-  use_case_prompt: string | null
   context_data: string | null
   compiled_prompt: string
 }
@@ -41,10 +40,9 @@ const FINANCIAL_KEYWORDS = [
 export function runValidationChecks(session: SessionFields): ValidationFlag[] {
   const flags: ValidationFlag[] = []
   const systemPrompt = session.system_prompt.toLowerCase()
-  const useCasePrompt = (session.use_case_prompt || '').toLowerCase()
   
-  // Combine only system prompt and use case prompt for validation (exclude context_data)
-  const promptsToValidate = session.system_prompt + ' ' + (session.use_case_prompt || '')
+  // Validate system prompt only (exclude context_data)
+  const promptsToValidate = session.system_prompt
 
   // V-01: Check for phone number patterns in system/use-case prompts only
   if (PII_PATTERNS.phone.test(promptsToValidate)) {
@@ -115,19 +113,19 @@ export function runValidationChecks(session: SessionFields): ValidationFlag[] {
     })
   }
 
-  // V-07: Check if context data is provided when use case mentions data-related keywords
+  // V-07: Check if context data is provided when system prompt mentions data-related keywords
   const mentionsData = 
-    useCasePrompt.includes('order') || 
-    useCasePrompt.includes('customer') || 
-    useCasePrompt.includes('product') ||
-    useCasePrompt.includes('account') ||
-    useCasePrompt.includes('data')
+    systemPrompt.includes('order') || 
+    systemPrompt.includes('customer') || 
+    systemPrompt.includes('product') ||
+    systemPrompt.includes('account') ||
+    systemPrompt.includes('data')
   
   if (mentionsData && !session.context_data) {
     flags.push({
       id: 'V-07',
       level: 'INFO',
-      message: 'Your use case mentions data (orders, customers, etc.). Consider adding context data for a more realistic simulation.'
+      message: 'Your system prompt mentions data (orders, customers, etc.). Consider adding context data for a more realistic simulation.'
     })
   }
 

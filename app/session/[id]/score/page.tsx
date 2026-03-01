@@ -80,7 +80,7 @@ function getOverallScoreStyle(score: number): { border: string; bg: string } {
 function formatDate(dateString: string | null): string {
   if (!dateString) return "N/A"
   const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { 
+  return date.toLocaleDateString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric'
@@ -90,7 +90,7 @@ function formatDate(dateString: string | null): string {
 export default function ScorePage() {
   const params = useParams()
   const sessionId = params.id as string
-  
+
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -163,7 +163,7 @@ ${eval_.strengths.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 Improvements:
 ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 `
-    
+
     try {
       await navigator.clipboard.writeText(summary)
       setCopied(true)
@@ -182,7 +182,7 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
             <span className="w-2 h-2 rounded-full bg-primary" />
           </Link>
           <div className="flex items-center gap-6">
-            <Link 
+            <Link
               href="/session/new"
               className="bg-primary text-primary-foreground font-semibold px-4 py-2 text-sm hover:bg-primary/90 transition-colors"
             >
@@ -231,7 +231,7 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
           <span className="w-2 h-2 rounded-full bg-primary" />
         </Link>
         <div className="flex items-center gap-6">
-          <Link 
+          <Link
             href="/session/new"
             className="bg-primary text-primary-foreground font-semibold px-4 py-2 text-sm hover:bg-primary/90 transition-colors"
           >
@@ -244,9 +244,9 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
       <main className="max-w-[800px] mx-auto px-6 py-10 pb-24">
         {/* Overall Score */}
         <div className="flex flex-col items-center mb-12">
-          <div 
+          <div
             className="w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center"
-            style={{ 
+            style={{
               border: `6px solid ${scoreStyle.border}`,
               backgroundColor: scoreStyle.bg
             }}
@@ -257,8 +257,8 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
             <span className="text-sm text-muted-foreground">/100</span>
           </div>
           <p className="mt-4 font-bold text-foreground">
-            Attempt {session.attempt_number} — {session.problem_statement.length > 40 
-              ? session.problem_statement.substring(0, 40) + '...' 
+            Attempt {session.attempt_number} — {session.problem_statement.length > 40
+              ? session.problem_statement.substring(0, 40) + '...'
               : session.problem_statement}
           </p>
           <p className="text-sm text-muted-foreground">
@@ -277,7 +277,7 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
                   <span className="font-mono font-bold text-foreground">{dim.score}/{dim.max}</span>
                 </div>
                 <div className="h-2 bg-border rounded-full overflow-hidden mb-1">
-                  <div 
+                  <div
                     className={`h-full ${getBarColorClass(dim.color)} rounded-full transition-all`}
                     style={{ width: `${dim.percent}%` }}
                   />
@@ -299,12 +299,11 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Redundancy</span>
-                <span className={`font-semibold px-2 py-0.5 rounded text-sm ${
-                  evaluation.prompt_efficiency.redundancy_flag === 'none' ? 'bg-green-100 text-green-700' :
-                  evaluation.prompt_efficiency.redundancy_flag === 'low' ? 'bg-blue-100 text-blue-700' :
-                  evaluation.prompt_efficiency.redundancy_flag === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
-                  'bg-red-100 text-red-700'
-                }`}>
+                <span className={`font-semibold px-2 py-0.5 rounded text-sm ${evaluation.prompt_efficiency.redundancy_flag === 'none' ? 'bg-green-100 text-green-700' :
+                    evaluation.prompt_efficiency.redundancy_flag === 'low' ? 'bg-blue-100 text-blue-700' :
+                      evaluation.prompt_efficiency.redundancy_flag === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                  }`}>
                   {evaluation.prompt_efficiency.redundancy_flag}
                 </span>
               </div>
@@ -330,7 +329,7 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
               </div>
               <div className="space-y-3">
                 {evaluation.strengths.map((item, idx) => (
-                  <div 
+                  <div
                     key={idx}
                     className="p-3 rounded-lg text-sm text-green-800"
                     style={{ backgroundColor: "rgba(30, 126, 52, 0.1)" }}
@@ -349,7 +348,7 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
               </div>
               <div className="space-y-3">
                 {evaluation.improvements.map((item, idx) => (
-                  <div 
+                  <div
                     key={idx}
                     className="p-3 bg-card border-l-4 border-yellow-500 text-sm text-foreground"
                   >
@@ -364,7 +363,7 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
         {/* Validation Flags Collapsible */}
         {warningFlags.length > 0 && (
           <div className="mb-12">
-            <button 
+            <button
               onClick={() => setFlagsOpen(!flagsOpen)}
               className="flex items-center gap-2 text-foreground font-semibold mb-4 hover:opacity-80 transition-opacity"
             >
@@ -399,7 +398,7 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
           >
             View All Sessions
           </Link>
-          <button 
+          <button
             onClick={copyScoreSummary}
             className="ml-auto flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >

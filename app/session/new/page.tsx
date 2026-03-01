@@ -30,7 +30,6 @@ function NewSessionContent() {
   
   const [problemStatement, setProblemStatement] = useState('')
   const [systemPrompt, setSystemPrompt] = useState('')
-  const [useCasePrompt, setUseCasePrompt] = useState('')
   const [contextData, setContextData] = useState('')
   
   const [flags, setFlags] = useState<ValidationFlag[]>([])
@@ -72,7 +71,6 @@ WHAT YOU MUST NEVER DO
         const data = await response.json()
         setProblemStatement(data.problem_statement || '')
         setSystemPrompt(data.system_prompt || '')
-        setUseCasePrompt(data.use_case_prompt || '')
         setContextData(data.context_data || '')
       }
     } catch (error) {
@@ -144,7 +142,6 @@ WHAT YOU MUST NEVER DO
         body: JSON.stringify({
           problem_statement: problemStatement,
           system_prompt: systemPrompt,
-          use_case_prompt: useCasePrompt,
           context_data: contextData
         })
       })
@@ -259,25 +256,7 @@ WHAT YOU MUST NEVER DO
             />
           </div>
 
-          {/* Field 3 - Use-Case Prompt (optional) */}
-          <div>
-            <label className="block text-foreground font-bold mb-1">
-              Use-Case Prompt <span className="font-normal text-muted-foreground">(optional)</span>
-            </label>
-            <p className="text-muted-foreground text-sm mb-2">
-              Describe the specific scenario or use case for this simulation.
-            </p>
-            <textarea
-              rows={4}
-              className="w-full px-4 py-3 border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none font-mono text-[13px] leading-relaxed"
-              value={useCasePrompt}
-              onChange={(e) => setUseCasePrompt(e.target.value)}
-              placeholder="e.g., Customer wants to return a defective product..."
-              disabled={isValidating}
-            />
-          </div>
-
-          {/* Field 4 - Use-Case Context */}
+          {/* Field 3 - Context Data */}
           <div>
             <label className="block text-foreground font-bold mb-1">
               Use-Case Context and Data

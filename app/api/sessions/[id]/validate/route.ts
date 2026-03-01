@@ -34,7 +34,6 @@ export async function POST(
 
     const flags = runValidationChecks({
       system_prompt: session.system_prompt,
-      use_case_prompt: session.use_case_prompt,
       context_data: session.context_data,
       compiled_prompt: session.compiled_prompt
     })

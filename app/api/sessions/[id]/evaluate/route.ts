@@ -105,9 +105,6 @@ export async function POST(
 
     const evaluationPrompt = `Please evaluate the following prompt engineering session:
 
-PROBLEM STATEMENT:
-${session.problem_statement}
-
 SYSTEM PROMPT (being evaluated):
 ${session.compiled_prompt}
 
