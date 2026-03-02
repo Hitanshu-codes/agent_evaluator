@@ -8,7 +8,7 @@ interface SparklineProps {
   height?: number
 }
 
-export function Sparkline({ data, width = 80, height = 24 }: SparklineProps) {
+export function Sparkline({ data, width = 80, height = 32 }: SparklineProps) {
   const chartData = data.map((value, index) => ({ index, value }))
 
   return (
@@ -18,8 +18,8 @@ export function Sparkline({ data, width = 80, height = 24 }: SparklineProps) {
           <Line 
             type="monotone" 
             dataKey="value" 
-            stroke="#1A1A1A" 
-            strokeWidth={2}
+            stroke="var(--primary)" 
+            strokeWidth={2.5}
             dot={false}
           />
         </LineChart>

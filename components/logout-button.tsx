@@ -2,12 +2,13 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { LogOut, Loader2 } from 'lucide-react'
 
 interface LogoutButtonProps {
   className?: string
 }
 
-export function LogoutButton({ className = "text-muted-foreground hover:text-foreground transition-colors" }: LogoutButtonProps) {
+export function LogoutButton({ className }: LogoutButtonProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -31,9 +32,19 @@ export function LogoutButton({ className = "text-muted-foreground hover:text-for
     <button
       onClick={handleLogout}
       disabled={isLoading}
-      className={className}
+      className={className || "flex items-center gap-2 text-[0.875rem] text-muted-foreground hover:text-foreground transition-colors font-medium"}
     >
-      {isLoading ? 'Logging out...' : 'Logout'}
+      {isLoading ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span className="hidden sm:inline">Logging out...</span>
+        </>
+      ) : (
+        <>
+          <LogOut className="w-4 h-4" />
+          <span className="hidden sm:inline">Logout</span>
+        </>
+      )}
     </button>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { Check, AlertTriangle, Copy, Loader2, BarChart3 } from "lucide-react"
+import { Check, AlertTriangle, Copy, Loader2, BarChart3, ArrowRight, ChevronLeft, RefreshCw, Sparkles } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 import { LogoutButton } from "@/components/logout-button"
@@ -58,27 +58,27 @@ function getScorePercent(score: number, max: number): number {
   return Math.round((score / max) * 100)
 }
 
-function getVerdict(score: number, max: number): { label: string; color: string; bgColor: string } {
+function getVerdict(score: number, max: number): { label: string; tagClass: string } {
   const percent = (score / max) * 100
-  if (percent >= 70) return { label: "EXCELLENT", color: "text-green-700", bgColor: "bg-green-100" }
-  if (percent >= 50) return { label: "GOOD", color: "text-yellow-700", bgColor: "bg-yellow-100" }
-  return { label: "GAP", color: "text-red-700", bgColor: "bg-red-100" }
+  if (percent >= 70) return { label: "EXCELLENT", tagClass: "tag--green" }
+  if (percent >= 50) return { label: "GOOD", tagClass: "tag--yellow" }
+  return { label: "GAP", tagClass: "tag--red" }
 }
 
 function getBarColor(score: number, max: number): string {
   const percent = (score / max) * 100
-  if (percent >= 70) return "bg-green-500"
-  if (percent >= 50) return "bg-yellow-500"
-  return "bg-red-500"
+  if (percent >= 70) return "bg-[var(--success)]"
+  if (percent >= 50) return "bg-[var(--warning)]"
+  return "bg-[var(--destructive)]"
 }
 
-function getOverallScoreStyle(score: number): { border: string; bg: string } {
+function getOverallScoreStyle(score: number): { border: string; bg: string; tagClass: string } {
   if (score >= 70) {
-    return { border: "#1E7E34", bg: "rgba(30, 126, 52, 0.08)" }
+    return { border: "var(--success)", bg: "var(--tag-green-bg)", tagClass: "tag--green" }
   } else if (score >= 50) {
-    return { border: "#EAB308", bg: "rgba(234, 179, 8, 0.08)" }
+    return { border: "var(--warning)", bg: "var(--tag-yellow-bg)", tagClass: "tag--yellow" }
   }
-  return { border: "#DC2626", bg: "rgba(220, 38, 38, 0.08)" }
+  return { border: "var(--destructive)", bg: "var(--tag-red-bg)", tagClass: "tag--red" }
 }
 
 function stripMarkdown(text: string): string {
@@ -189,31 +189,37 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
   if (isLoading || !session?.evaluation) {
     return (
-      <div className="min-h-screen bg-background">
-        <nav className="sticky top-0 z-50 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
+      <div className="page-bg">
+        <header className="navbar">
           <Link href="/dashboard">
-            <img src="/logo.png" alt="Nudgeable" className="h-12" />
+            <img src="/logo.png" alt="Nudgeable" className="h-10" />
           </Link>
-          <div className="flex items-center gap-6">
-            <Link
-              href="/session/new"
-              className="bg-primary text-primary-foreground font-semibold px-4 py-2 text-sm hover:bg-primary/90 transition-colors"
-            >
+          <div className="flex items-center gap-4">
+            <Link href="/session/new" className="btn-primary py-2 px-5">
               New Session
             </Link>
-            <LogoutButton className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
+            <LogoutButton />
           </div>
-        </nav>
+        </header>
 
         <main className="max-w-[800px] mx-auto px-6 py-10">
-          <div className="flex flex-col items-center py-20">
-            <div className="w-[130px] h-[130px] rounded-full border-[6px] border-border bg-card flex items-center justify-center">
-              <Loader2 className="w-10 h-10 text-muted-foreground animate-spin" />
+          <div className="nudge-card text-center py-16 animate-pop">
+            <div className="w-[140px] h-[140px] rounded-full border-[6px] border-[var(--border)] bg-white flex items-center justify-center mx-auto mb-6">
+              <Loader2 className="w-12 h-12 text-primary animate-spin" />
             </div>
-            <p className="mt-4 font-medium text-foreground">Evaluating your prompt</p>
-            <p className="text-sm text-muted-foreground">This usually takes 10 to 15 seconds</p>
+            <h2 className="text-[1.25rem] font-bold text-foreground mb-2">Evaluating your prompt</h2>
+            <p className="text-muted-foreground">This usually takes 10 to 15 seconds</p>
+            
+            <div className="mt-6 flex items-center justify-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-2 h-2 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+            
             {error && (
-              <p className="mt-4 text-sm text-red-500">{error}</p>
+              <div className="mt-6 p-3 rounded-[var(--radius-md)] bg-[var(--tag-red-bg)]">
+                <p className="text-[0.875rem] text-[var(--tag-red-text)] font-medium">{error}</p>
+              </div>
             )}
           </div>
         </main>
@@ -240,175 +246,189 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
   )
 
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="sticky top-0 z-50 bg-card border-b border-border px-6 py-3 flex items-center justify-between">
-        <Link href="/dashboard">
-          <img src="/logo.png" alt="Nudgeable" className="h-12" />
-        </Link>
-        <div className="flex items-center gap-6">
-          <Link
-            href="/session/new"
-            className="bg-primary text-primary-foreground font-semibold px-4 py-2 text-sm hover:bg-primary/90 transition-colors"
+    <div className="page-bg pb-24">
+      <header className="navbar">
+        <div className="flex items-center gap-4">
+          <Link 
+            href="/dashboard"
+            className="w-9 h-9 rounded-full border border-[var(--border-strong)] bg-white/80 flex items-center justify-center hover:bg-[var(--muted)] transition-colors"
           >
-            New Session
+            <ChevronLeft className="w-5 h-5 text-[#4A4047]" />
           </Link>
-          <LogoutButton className="text-sm text-muted-foreground hover:text-foreground transition-colors" />
+          <Link href="/dashboard">
+            <img src="/logo.png" alt="Nudgeable" className="h-10" />
+          </Link>
         </div>
-      </nav>
+        <div className="flex items-center gap-3">
+          <span className="tag tag--purple">Phase 3</span>
+          <LogoutButton />
+        </div>
+      </header>
 
-      <main className="max-w-[900px] mx-auto px-6 py-10 pb-24">
-        {/* Overall Score */}
-        <div className="flex flex-col items-center mb-12">
+      <main className="max-w-[920px] mx-auto px-6 py-10">
+        {/* Overall Score Hero */}
+        <div className="nudge-card text-center mb-10 animate-pop">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <span className="text-[0.813rem] font-semibold text-muted-foreground uppercase tracking-wider">Evaluation Complete</span>
+          </div>
+          
           <div
-            className="w-[130px] h-[130px] rounded-full flex flex-col items-center justify-center"
+            className="w-[150px] h-[150px] rounded-full flex flex-col items-center justify-center mx-auto mb-6"
             style={{
               border: `6px solid ${scoreStyle.border}`,
               backgroundColor: scoreStyle.bg
             }}
           >
-            <span className="font-mono font-bold text-[42px] leading-none text-foreground">
+            <span className="font-mono font-bold text-[52px] leading-none text-foreground">
               {evaluation.overall_score}
             </span>
-            <span className="text-sm text-muted-foreground">/100</span>
+            <span className="text-[0.875rem] text-muted-foreground">/100</span>
           </div>
-          <p className="mt-4 font-bold text-foreground">
-            Attempt {session.attempt_number} — {session.problem_statement.length > 40
-              ? session.problem_statement.substring(0, 40) + '...'
+          
+          <h1 className="text-[1.25rem] font-bold text-foreground mb-2">
+            Attempt {session.attempt_number} — {session.problem_statement.length > 45
+              ? session.problem_statement.substring(0, 45) + '...'
               : session.problem_statement}
-          </p>
-          <p className="text-sm text-muted-foreground">
+          </h1>
+          <p className="text-[0.875rem] text-muted-foreground">
             Evaluated on {formatDate(session.completed_at)} · {session.message_count} exchanges
           </p>
         </div>
 
-        {/* Key Strengths & Critical Actions - MOVED ABOVE SCORE BREAKDOWN */}
-        <div className="mb-10">
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Key Strengths Card */}
-            <div className="bg-card border border-border rounded-xl p-6 border-l-4 border-l-green-500">
-              <div className="flex items-center gap-2 mb-5">
-                <Check className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-green-700 uppercase tracking-wide text-sm">Key Strengths</span>
+        {/* Key Strengths & Critical Actions */}
+        <div className="grid md:grid-cols-2 gap-6 mb-10 animate-fade-up delay-1">
+          {/* Key Strengths Card */}
+          <div className="nudge-card" style={{ borderLeft: '4px solid var(--success)' }}>
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-8 h-8 rounded-full bg-[var(--tag-green-bg)] flex items-center justify-center">
+                <Check className="w-4 h-4 text-[var(--tag-green-text)]" />
               </div>
-              <ul className="space-y-3">
-                {evaluation.strengths.map((item, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
-                    <span className="text-muted-foreground mt-1">•</span>
-                    <span>{stripMarkdown(item)}</span>
-                  </li>
-                ))}
-              </ul>
+              <span className="font-bold text-[var(--tag-green-text)] uppercase tracking-wide text-[0.813rem]">Key Strengths</span>
             </div>
+            <ul className="space-y-3">
+              {evaluation.strengths.map((item, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-[0.875rem] text-foreground">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] mt-2 shrink-0" />
+                  <span>{stripMarkdown(item)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Critical Actions Card */}
-            <div className="bg-card border border-border rounded-xl p-6 border-l-4 border-l-red-500">
-              <div className="flex items-center gap-2 mb-5">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
-                <span className="font-semibold text-red-700 uppercase tracking-wide text-sm">Critical Actions</span>
+          {/* Critical Actions Card */}
+          <div className="nudge-card" style={{ borderLeft: '4px solid var(--destructive)' }}>
+            <div className="flex items-center gap-2 mb-5">
+              <div className="w-8 h-8 rounded-full bg-[var(--tag-red-bg)] flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-[var(--tag-red-text)]" />
               </div>
-              <div className="space-y-4">
-                {evaluation.improvements.map((item, idx) => {
-                  const cleanedItem = stripMarkdown(item)
-                  const parts = cleanedItem.split(':')
-                  const title = parts.length > 1 ? parts[0].trim() : `Action ${idx + 1}`
-                  const description = parts.length > 1 ? parts.slice(1).join(':').trim() : cleanedItem
-                  return (
-                    <div key={idx}>
-                      <p className="font-semibold text-foreground text-sm">{title}</p>
-                      <p className="text-sm text-muted-foreground">{description}</p>
-                    </div>
-                  )
-                })}
-              </div>
+              <span className="font-bold text-[var(--tag-red-text)] uppercase tracking-wide text-[0.813rem]">Critical Actions</span>
+            </div>
+            <div className="space-y-4">
+              {evaluation.improvements.map((item, idx) => {
+                const cleanedItem = stripMarkdown(item)
+                const parts = cleanedItem.split(':')
+                const title = parts.length > 1 ? parts[0].trim() : `Action ${idx + 1}`
+                const description = parts.length > 1 ? parts.slice(1).join(':').trim() : cleanedItem
+                return (
+                  <div key={idx}>
+                    <p className="font-semibold text-foreground text-[0.875rem]">{title}</p>
+                    <p className="text-[0.813rem] text-muted-foreground leading-relaxed">{description}</p>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
 
         {/* Prompt Dimension Detail Table */}
-        <div className="mb-12">
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            {/* Table Header */}
-            <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-primary" />
-                <span className="font-semibold text-foreground uppercase tracking-wide text-sm">Prompt Dimension Detail</span>
-              </div>
-              <input
-                type="text"
-                placeholder="Filter dimensions..."
-                value={dimensionFilter}
-                onChange={(e) => setDimensionFilter(e.target.value)}
-                className="px-3 py-1.5 text-sm border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
+        <div className="nudge-card mb-10 animate-fade-up delay-2 p-0 overflow-hidden">
+          {/* Table Header */}
+          <div className="px-6 py-4 border-b border-[var(--border)] flex items-center justify-between bg-[var(--secondary)]">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <span className="font-bold text-foreground uppercase tracking-wide text-[0.813rem]">Prompt Dimension Detail</span>
             </div>
+            <input
+              type="text"
+              placeholder="Filter dimensions..."
+              value={dimensionFilter}
+              onChange={(e) => setDimensionFilter(e.target.value)}
+              className="form-input w-48 py-2 text-[0.813rem]"
+            />
+          </div>
 
-            {/* Table Content */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border text-left">
-                    <th className="px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-12">#</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Dimension</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-24">Score</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-28">Verdict</th>
-                    <th className="px-6 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recommendation</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDimensions.map((dim) => (
-                    <tr key={dim.key} className="border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors">
-                      <td className="px-6 py-4 text-sm text-muted-foreground">{dim.index}</td>
-                      <td className="px-6 py-4">
-                        <span className="font-medium text-foreground text-sm">{dim.name}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <span className="font-mono font-semibold text-foreground text-sm">{dim.score}/{dim.max}</span>
-                          <div className="w-16 h-1.5 bg-border rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${dim.barColor} rounded-full transition-all`}
-                              style={{ width: `${getScorePercent(dim.score, dim.max)}%` }}
-                            />
-                          </div>
+          {/* Table Content */}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[var(--border)] text-left bg-white/50">
+                  <th className="px-6 py-3 text-[0.70rem] font-semibold text-muted-foreground uppercase tracking-wider w-12">#</th>
+                  <th className="px-6 py-3 text-[0.70rem] font-semibold text-muted-foreground uppercase tracking-wider">Dimension</th>
+                  <th className="px-6 py-3 text-[0.70rem] font-semibold text-muted-foreground uppercase tracking-wider w-28">Score</th>
+                  <th className="px-6 py-3 text-[0.70rem] font-semibold text-muted-foreground uppercase tracking-wider w-28">Verdict</th>
+                  <th className="px-6 py-3 text-[0.70rem] font-semibold text-muted-foreground uppercase tracking-wider">Recommendation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredDimensions.map((dim) => (
+                  <tr key={dim.key} className="border-b border-[var(--border)] last:border-b-0 hover:bg-[var(--muted)] transition-colors">
+                    <td className="px-6 py-4 text-[0.875rem] text-muted-foreground">{dim.index}</td>
+                    <td className="px-6 py-4">
+                      <span className="font-semibold text-foreground text-[0.875rem]">{dim.name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-1.5">
+                        <span className="font-mono font-bold text-foreground text-[0.875rem]">{dim.score}/{dim.max}</span>
+                        <div className="w-16 h-2 bg-[var(--border)] rounded-full overflow-hidden">
+                          <div
+                            className={`h-full ${dim.barColor} rounded-full transition-all`}
+                            style={{ width: `${getScorePercent(dim.score, dim.max)}%` }}
+                          />
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-block px-2.5 py-1 rounded text-xs font-semibold ${dim.verdict.bgColor} ${dim.verdict.color}`}>
-                          {dim.verdict.label}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground max-w-xs">{dim.note}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`tag ${dim.verdict.tagClass}`}>
+                        {dim.verdict.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-[0.813rem] text-muted-foreground max-w-xs leading-relaxed">{dim.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
         {/* Prompt Efficiency */}
         {evaluation.prompt_efficiency && (
-          <div className="mb-12">
-            <h2 className="text-lg font-semibold text-foreground mb-6">Prompt Efficiency</h2>
-            <div className="p-4 bg-card border border-border rounded-lg space-y-3">
+          <div className="nudge-card mb-10 animate-fade-up delay-3">
+            <h2 className="text-[1.063rem] font-bold text-foreground mb-5 flex items-center gap-2">
+              <span className="w-8 h-8 rounded-full bg-[var(--tag-blue-bg)] flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-[var(--tag-blue-text)]" />
+              </span>
+              Prompt Efficiency
+            </h2>
+            <div className="nudge-card__inset space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Total Tokens</span>
-                <span className="font-mono font-bold text-foreground">{evaluation.prompt_efficiency.total_tokens.toLocaleString()}</span>
+                <span className="text-[0.875rem] text-muted-foreground">Total Tokens</span>
+                <span className="font-mono font-bold text-foreground text-[1.063rem]">{evaluation.prompt_efficiency.total_tokens.toLocaleString()}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Redundancy</span>
-                <span className={`font-semibold px-2 py-0.5 rounded text-sm ${evaluation.prompt_efficiency.redundancy_flag === 'none' ? 'bg-green-100 text-green-700' :
-                    evaluation.prompt_efficiency.redundancy_flag === 'low' ? 'bg-blue-100 text-blue-700' :
-                      evaluation.prompt_efficiency.redundancy_flag === 'moderate' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                  }`}>
+                <span className="text-[0.875rem] text-muted-foreground">Redundancy</span>
+                <span className={`tag ${
+                  evaluation.prompt_efficiency.redundancy_flag === 'none' ? 'tag--green' :
+                  evaluation.prompt_efficiency.redundancy_flag === 'low' ? 'tag--blue' :
+                  evaluation.prompt_efficiency.redundancy_flag === 'moderate' ? 'tag--yellow' : 'tag--red'
+                }`}>
                   {evaluation.prompt_efficiency.redundancy_flag}
                 </span>
               </div>
               {evaluation.prompt_efficiency.compression_suggestion && (
-                <div className="pt-2 border-t border-border">
-                  <p className="text-sm text-muted-foreground mb-1">Compression Suggestion</p>
-                  <p className="text-sm text-foreground italic">{evaluation.prompt_efficiency.compression_suggestion}</p>
+                <div className="pt-4 border-t border-[var(--border)]">
+                  <p className="text-[0.813rem] text-muted-foreground mb-2 font-medium">Compression Suggestion</p>
+                  <p className="text-[0.875rem] text-foreground italic leading-relaxed">{evaluation.prompt_efficiency.compression_suggestion}</p>
                 </div>
               )}
             </div>
@@ -416,25 +436,21 @@ ${eval_.improvements.map((s, i) => `${i + 1}. ${s}`).join('\n')}
         )}
 
         {/* Bottom Buttons */}
-        <div className="flex flex-wrap items-center gap-4">
-          <Link
-            href={`/session/new?from=${sessionId}`}
-            className="bg-primary text-primary-foreground font-semibold px-6 py-3 hover:bg-primary/90 transition-colors"
-          >
+        <div className="flex flex-wrap items-center gap-4 animate-fade-up delay-4">
+          <Link href={`/session/new?from=${sessionId}`} className="btn-primary">
+            <RefreshCw className="w-4 h-4" />
             Try Again
           </Link>
-          <Link
-            href="/dashboard"
-            className="border-2 border-foreground text-foreground font-semibold px-6 py-3 hover:bg-foreground hover:text-background transition-colors"
-          >
+          <Link href="/dashboard" className="btn-secondary">
             View All Sessions
+            <ArrowRight className="w-4 h-4" />
           </Link>
           <button
             onClick={copyScoreSummary}
-            className="ml-auto flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="ml-auto flex items-center gap-2 text-[0.875rem] text-muted-foreground hover:text-foreground transition-colors font-medium"
           >
             <Copy className="w-4 h-4" />
-            {copied ? 'Copied!' : 'Copy Score Summary'}
+            {copied ? 'Copied!' : 'Copy Summary'}
           </button>
         </div>
       </main>

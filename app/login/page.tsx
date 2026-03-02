@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -40,57 +41,83 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-[400px] bg-card border border-border p-10">
+    <main className="page-bg flex items-center justify-center p-4">
+      {/* Login card */}
+      <div className="w-full max-w-[420px] nudge-card animate-pop">
+        {/* Icon badge */}
+        <div className="w-[72px] h-[72px] rounded-full bg-[rgba(255,206,0,0.15)] border-2 border-[rgba(255,206,0,0.3)] flex items-center justify-center mx-auto mb-5">
+          <span className="text-[32px]">🚀</span>
+        </div>
+        
         {/* Logo */}
         <div className="flex justify-center mb-2">
           <img src="/logo.png" alt="Nudgeable" className="h-14" />
         </div>
         
         {/* Subtitle */}
-        <p className="text-center text-muted-foreground text-sm mb-8">
+        <p className="text-center text-muted-foreground text-[0.938rem] mb-8">
           Flipkart Prompt Lab
         </p>
         
         {/* Form */}
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <label className="block text-[0.813rem] font-semibold text-[#4A4047]">
+              Username
+            </label>
             <input
               type="text"
-              placeholder="Username"
+              placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="form-input"
               disabled={isLoading}
             />
           </div>
           
-          <div>
+          <div className="space-y-2">
+            <label className="block text-[0.813rem] font-semibold text-[#4A4047]">
+              Password
+            </label>
             <input
               type="password"
-              placeholder="Password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="form-input"
               disabled={isLoading}
             />
           </div>
           
           <button
             type="submit"
-            className="w-full bg-primary text-primary-foreground font-bold py-3 hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="btn-primary w-full mt-2"
             disabled={isLoading}
           >
-            {isLoading ? 'Signing In...' : 'Sign In'}
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Signing In...
+              </>
+            ) : (
+              'Sign In'
+            )}
           </button>
           
           {/* Error message */}
           {error && (
-            <p className="text-destructive text-sm text-center">
-              {error}
-            </p>
+            <div className="p-3 rounded-[var(--radius-md)] bg-[var(--tag-red-bg)] border border-[rgba(237,69,81,0.2)]">
+              <p className="text-[var(--tag-red-text)] text-[0.813rem] text-center font-medium">
+                {error}
+              </p>
+            </div>
           )}
         </form>
+        
+        {/* Footer text */}
+        <p className="text-center text-muted-foreground text-[0.70rem] mt-6">
+          Build better AI agents with confidence
+        </p>
       </div>
     </main>
   )

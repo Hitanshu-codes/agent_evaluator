@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef, Suspense } from 'react'
-import { X, Loader2, Upload, FileSpreadsheet, Trash2 } from 'lucide-react'
+import { X, Loader2, Upload, FileSpreadsheet, Trash2, ArrowRight, ChevronLeft } from 'lucide-react'
 import { LogoutButton } from '@/components/logout-button'
 
 interface ValidationFlag {
@@ -172,95 +172,106 @@ WHAT YOU MUST NEVER DO
   const errorFlags = flags.filter(f => f.level === 'ERROR')
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="page-bg pb-28">
       {/* Navbar */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/dashboard">
-            <img src="/logo.png" alt="Nudgeable" className="h-12" />
+      <header className="navbar">
+        <div className="flex items-center gap-4">
+          <Link 
+            href="/dashboard"
+            className="w-9 h-9 rounded-full border border-[var(--border-strong)] bg-white/80 flex items-center justify-center hover:bg-[var(--muted)] transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-[#4A4047]" />
           </Link>
-          
-          <div className="flex items-center gap-4">
-            <Link 
-              href="/session/new"
-              className="bg-primary text-primary-foreground font-medium px-4 py-2 hover:bg-primary/90 transition-colors"
-            >
-              New Session
-            </Link>
-            <LogoutButton />
-          </div>
+          <Link href="/dashboard">
+            <img src="/logo.png" alt="Nudgeable" className="h-10" />
+          </Link>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <LogoutButton />
         </div>
       </header>
 
       {/* Main content */}
-      <main className="max-w-[720px] mx-auto px-6 py-8">
+      <main className="max-w-[760px] mx-auto px-6 py-10">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-foreground">New Session</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+        <div className="mb-8 animate-fade-up">
+          <h1 className="text-[1.875rem] font-bold text-foreground">New Session</h1>
+          <p className="text-muted-foreground text-[0.938rem] mt-1">
             Phase 1 of 3 — Define your agent
           </p>
           
           {/* Step indicator */}
-          <div className="flex items-center gap-2 mt-4">
-            <div className="px-4 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-full">
-              Phase 1
+          <div className="flex items-center gap-3 mt-5">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-[0.813rem] font-bold text-primary-foreground">
+                1
+              </div>
+              <span className="text-[0.875rem] font-semibold text-foreground">Define</span>
             </div>
-            <div className="w-8 h-px bg-border"></div>
-            <div className="px-4 py-1.5 border border-border text-muted-foreground text-sm rounded-full">
-              Phase 2
+            <div className="w-12 h-[2px] bg-[var(--border-strong)]" />
+            <div className="flex items-center gap-2 opacity-50">
+              <div className="w-8 h-8 rounded-full border-2 border-[var(--border-strong)] flex items-center justify-center text-[0.813rem] font-medium text-muted-foreground">
+                2
+              </div>
+              <span className="text-[0.875rem] text-muted-foreground">Simulate</span>
             </div>
-            <div className="w-8 h-px bg-border"></div>
-            <div className="px-4 py-1.5 border border-border text-muted-foreground text-sm rounded-full">
-              Phase 3
+            <div className="w-12 h-[2px] bg-[var(--border-strong)]" />
+            <div className="flex items-center gap-2 opacity-50">
+              <div className="w-8 h-8 rounded-full border-2 border-[var(--border-strong)] flex items-center justify-center text-[0.813rem] font-medium text-muted-foreground">
+                3
+              </div>
+              <span className="text-[0.875rem] text-muted-foreground">Evaluate</span>
             </div>
           </div>
         </div>
 
         {/* Form */}
-        <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
+        <form className="space-y-8 animate-fade-up delay-1" onSubmit={(e) => e.preventDefault()}>
           {/* Field 1 - Problem Statement */}
-          <div>
-            <label className="block text-foreground font-bold mb-1">
+          <div className="nudge-card">
+            <label className="block text-foreground font-bold text-[1.063rem] mb-1">
               Problem Statement
             </label>
-            <p className="text-muted-foreground text-sm mb-2">
+            <p className="text-muted-foreground text-[0.875rem] mb-4">
               What is this AI agent being built to solve? Be specific — this becomes the title of your session.
             </p>
             <textarea
               rows={3}
-              className="w-full px-4 py-3 border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+              className="form-input resize-none font-sans"
               value={problemStatement}
               onChange={(e) => setProblemStatement(e.target.value)}
               disabled={isValidating}
+              placeholder="e.g., Handle customer complaints about returns..."
             />
           </div>
 
           {/* Field 2 - System Prompt */}
-          <div>
-            <label className="block text-foreground font-bold mb-1">
+          <div className="nudge-card">
+            <label className="block text-foreground font-bold text-[1.063rem] mb-1">
               System Prompt
             </label>
-            <p className="text-muted-foreground text-sm mb-2">
+            <p className="text-muted-foreground text-[0.875rem] mb-4">
               Define who the agent is, what it must always do, and what it must never do. This is the primary object being evaluated.
             </p>
             <textarea
-              rows={10}
-              className="w-full px-4 py-3 border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none font-mono text-[13px] leading-relaxed"
+              rows={12}
+              className="form-input resize-none font-mono text-[0.813rem] leading-relaxed"
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               disabled={isValidating}
+              placeholder="You are..."
             />
           </div>
 
           {/* Field 3 - Context Data */}
-          <div>
-            <label className="block text-foreground font-bold mb-1">
+          <div className="nudge-card">
+            <label className="block text-foreground font-bold text-[1.063rem] mb-1">
               Use-Case Context and Data
             </label>
-            <p className="text-muted-foreground text-sm mb-2">
+            <p className="text-muted-foreground text-[0.875rem] mb-4">
               Paste order details, product data, and policies the agent needs for this simulation.
-              Or upload an Excel file with multiple sheets (customer, product, seller data).
+              Or upload an Excel file with multiple sheets.
             </p>
             
             {/* Excel Upload Section */}
@@ -279,64 +290,61 @@ WHAT YOU MUST NEVER DO
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isValidating || isUploading}
-                  className="flex items-center gap-2 px-4 py-2.5 border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
+                  className="flex items-center gap-3 px-5 py-4 border-2 border-dashed border-[var(--border-strong)] rounded-[var(--radius-lg)] hover:border-primary hover:bg-[var(--muted)] transition-all text-muted-foreground hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed w-full justify-center"
                 >
                   {isUploading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Uploading...</span>
+                      <span className="font-medium">Uploading...</span>
                     </>
                   ) : (
                     <>
                       <Upload className="w-5 h-5" />
-                      <span>Upload Excel File (.xlsx, .xls)</span>
+                      <span className="font-medium">Upload Excel File (.xlsx, .xls)</span>
                     </>
                   )}
                 </button>
               ) : (
-                <div className="border border-border bg-card/50 p-4">
+                <div className="nudge-card__inset">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <FileSpreadsheet className="w-5 h-5 text-green-600" />
-                      <span className="font-medium text-foreground">{uploadedFile.fileName}</span>
+                      <FileSpreadsheet className="w-5 h-5 text-[var(--tag-green-text)]" />
+                      <span className="font-semibold text-foreground">{uploadedFile.fileName}</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleRemoveFile}
-                      className="text-muted-foreground hover:text-red-500 transition-colors"
+                      className="text-muted-foreground hover:text-[var(--destructive)] transition-colors p-1"
                       title="Remove file"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
                     {uploadedFile.sheets.map((sheet) => (
-                      <div key={sheet.name} className="flex items-center gap-2 text-sm">
-                        <span className="px-2 py-0.5 bg-primary/10 text-primary font-medium rounded">
-                          {sheet.name}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {sheet.rowCount} rows • {sheet.columns.length} columns
-                        </span>
+                      <div key={sheet.name} className="tag tag--green">
+                        {sheet.name} · {sheet.rowCount} rows
                       </div>
                     ))}
                   </div>
                   
-                  <p className="text-xs text-muted-foreground mt-3">
+                  <p className="text-[0.75rem] text-muted-foreground mt-3">
                     Data has been formatted and added to context below
                   </p>
                 </div>
               )}
               
               {uploadError && (
-                <p className="text-sm text-red-500 mt-2">{uploadError}</p>
+                <div className="mt-3 p-3 rounded-[var(--radius-md)] bg-[var(--tag-red-bg)]">
+                  <p className="text-[0.813rem] text-[var(--tag-red-text)] font-medium">{uploadError}</p>
+                </div>
               )}
             </div>
             
             <textarea
               rows={10}
-              className="w-full px-4 py-3 border border-border bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none font-mono text-[13px] leading-relaxed"
+              className="form-input resize-none font-mono text-[0.813rem] leading-relaxed"
               value={contextData}
               onChange={(e) => setContextData(e.target.value)}
               disabled={isValidating}
@@ -347,12 +355,12 @@ WHAT YOU MUST NEVER DO
 
         {/* Error Display */}
         {hasValidated && hasErrors && (
-          <div className="mt-12 space-y-4">
+          <div className="mt-8 space-y-4 animate-fade-up">
             {errorFlags.map((flag) => (
-              <div key={flag.id} className="flex items-start gap-3 p-4 bg-red-50 border-l-4 border-red-500">
-                <X className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+              <div key={flag.id} className="flex items-start gap-3 p-4 rounded-[var(--radius-lg)] bg-[var(--tag-red-bg)] border-l-4 border-[var(--destructive)]">
+                <X className="w-5 h-5 text-[var(--destructive)] shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <p className="text-sm text-foreground">
+                  <p className="text-[0.875rem] text-foreground font-medium">
                     {flag.message}
                   </p>
                 </div>
@@ -363,17 +371,22 @@ WHAT YOU MUST NEVER DO
       </main>
 
       {/* Sticky bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border">
-        <div className="max-w-[720px] mx-auto px-6 py-4 flex items-center justify-between">
-          <span className="text-muted-foreground text-sm">
-            System prompt: {systemPrompt.length} characters ({Math.floor(systemPrompt.length / 4)} tokens)
-          </span>
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-filter backdrop-blur-lg border-t border-[var(--border)]">
+        <div className="max-w-[760px] mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="tag tag--blue">
+              {systemPrompt.length} chars
+            </span>
+            <span className="text-muted-foreground text-[0.813rem]">
+              ~{Math.floor(systemPrompt.length / 4)} tokens
+            </span>
+          </div>
           
           <button
             type="button"
             onClick={handleContinue}
             disabled={isValidating || !problemStatement.trim() || !systemPrompt.trim()}
-            className="bg-primary text-primary-foreground font-medium px-6 py-2.5 hover:bg-primary/90 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary"
           >
             {isValidating ? (
               <>
@@ -381,7 +394,10 @@ WHAT YOU MUST NEVER DO
                 Creating Session...
               </>
             ) : (
-              'Continue to Simulation'
+              <>
+                Continue to Simulation
+                <ArrowRight className="w-4 h-4" />
+              </>
             )}
           </button>
         </div>
@@ -393,7 +409,7 @@ WHAT YOU MUST NEVER DO
 export default function NewSessionPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="page-bg flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     }>

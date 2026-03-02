@@ -2,7 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect, useRef } from "react"
-import { ArrowUp, Check, Loader2 } from "lucide-react"
+import { ArrowUp, Check, Loader2, Zap, AlertCircle, MessageCircle, User, Bot } from "lucide-react"
+import Link from "next/link"
 
 interface Message {
   id: string
@@ -198,28 +199,37 @@ export default function SimulatePage() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      {/* Left Column */}
-      <div className="w-[260px] shrink-0 bg-secondary border-r border-border flex flex-col overflow-y-auto">
-        <div className="p-4 flex flex-col gap-4 flex-1">
+    <div className="h-screen flex overflow-hidden bg-[var(--background)]">
+      {/* Left Column - Simulation Guide */}
+      <div className="w-[280px] shrink-0 bg-white/80 backdrop-blur-md border-r border-[var(--border)] flex flex-col overflow-y-auto">
+        <div className="p-5 flex flex-col gap-5 flex-1">
           {/* Header */}
-          <p className="text-xs font-mono text-primary uppercase tracking-wider">
-            Simulation Guide
-          </p>
+          <div className="flex items-center justify-between">
+            <Link href="/dashboard">
+              <img src="/logo.png" alt="Nudgeable" className="h-8" />
+            </Link>
+            <span className="tag tag--purple">
+              Phase 2
+            </span>
+          </div>
 
           {/* Yellow Banner */}
-          <div className="bg-primary p-3 rounded-lg">
-            <p className="font-bold text-primary-foreground text-sm">
-              You are playing the customer.
-            </p>
-            <p className="text-xs text-primary-foreground/70 mt-1">
-              Chat with the agent as if you are a Flipkart customer. Try to pressure-test it.
+          <div className="p-4 rounded-[var(--radius-lg)]" style={{ background: 'var(--primary)' }}>
+            <div className="flex items-center gap-2 mb-2">
+              <User className="w-4 h-4 text-[#221D23]" />
+              <p className="font-bold text-[#221D23] text-[0.875rem]">
+                You are the customer
+              </p>
+            </div>
+            <p className="text-[0.75rem] text-[#221D23]/70 leading-relaxed">
+              Chat with the AI agent as if you are a real Flipkart customer. Try different scenarios to test its responses.
             </p>
           </div>
 
           {/* Quick Scenarios */}
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-[0.70rem] text-muted-foreground uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+              <Zap className="w-3 h-3" />
               Quick Scenarios
             </p>
             <div className="flex flex-wrap gap-2">
@@ -227,7 +237,7 @@ export default function SimulatePage() {
                 <button
                   key={scenario}
                   onClick={() => handleScenarioClick(scenario)}
-                  className="text-xs px-2 py-1 border border-primary rounded-full text-foreground hover:bg-primary/10 transition-colors"
+                  className="text-[0.75rem] px-3 py-1.5 border border-[var(--border-yellow)] rounded-full text-foreground hover:bg-[var(--muted)] transition-all hover:border-primary font-medium"
                 >
                   {scenario}
                 </button>
@@ -237,12 +247,14 @@ export default function SimulatePage() {
 
           {/* Pressure Tactics */}
           <div>
-            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
+            <p className="text-[0.70rem] text-muted-foreground uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+              <AlertCircle className="w-3 h-3" />
               Pressure Tactics
             </p>
-            <ul className="space-y-1">
+            <ul className="space-y-2">
               {pressureTactics.map((tactic) => (
-                <li key={tactic} className="text-xs text-muted-foreground">
+                <li key={tactic} className="text-[0.75rem] text-[#4A4047] flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--tag-orange-text)] mt-1.5 shrink-0" />
                   {tactic}
                 </li>
               ))}
@@ -251,64 +263,77 @@ export default function SimulatePage() {
         </div>
 
         {/* Bottom Stats */}
-        <div className="p-4 border-t border-border">
-          <p className="text-xs font-mono text-foreground">{messageCount} / 50 exchanges</p>
-          <p className="text-xs text-green-600 flex items-center gap-1 mt-1">
-            <Check className="w-3 h-3" />
+        <div className="p-5 border-t border-[var(--border)] bg-[var(--secondary)]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[0.75rem] text-muted-foreground">Exchanges</span>
+            <span className="text-[0.875rem] font-mono font-bold text-foreground">{messageCount}/50</span>
+          </div>
+          <div className="h-1.5 bg-[var(--border)] rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary rounded-full transition-all"
+              style={{ width: `${Math.min((messageCount / 50) * 100, 100)}%` }}
+            />
+          </div>
+          <p className="text-[0.75rem] text-[var(--tag-green-text)] flex items-center gap-1.5 mt-3 font-medium">
+            <Check className="w-3.5 h-3.5" />
             Ready to evaluate
           </p>
         </div>
       </div>
 
-      {/* Right Column */}
+      {/* Right Column - Chat */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
-        <div className="bg-card border-b border-border px-4 py-3 flex items-center justify-between shrink-0">
+        <div className="bg-white/80 backdrop-blur-md border-b border-[var(--border)] px-6 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="font-bold text-primary-foreground text-sm">A</span>
+            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-[var(--shadow-yellow)]">
+              <Bot className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-foreground">Agent</span>
-            <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
-              Agent
-            </span>
+            <div>
+              <span className="font-bold text-foreground text-[0.938rem]">AI Agent</span>
+              <p className="text-[0.70rem] text-muted-foreground">
+                {session?.problem_statement ? (session.problem_statement.length > 35 ? session.problem_statement.substring(0, 35) + '...' : session.problem_statement) : 'Loading...'}
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 text-center">
-            <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-              {session?.problem_statement || 'Loading...'}
-            </span>
-            <span className="text-xs bg-secondary text-muted-foreground px-2 py-0.5 rounded-full">
+          <div className="flex items-center gap-3">
+            <span className="tag tag--yellow">
               Attempt #{session?.attempt_number || '...'}
             </span>
+            <button
+              onClick={handleEndAndEvaluate}
+              disabled={!minExchangesMet || isEvaluating}
+              className="btn-primary py-2 px-5"
+            >
+              {isEvaluating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Evaluating...
+                </>
+              ) : (
+                <>
+                  End & Evaluate
+                </>
+              )}
+            </button>
           </div>
-
-          <button
-            onClick={handleEndAndEvaluate}
-            disabled={!minExchangesMet || isEvaluating}
-            className="bg-primary text-primary-foreground px-4 py-2 text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            {isEvaluating ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Evaluating...
-              </>
-            ) : (
-              'End and Evaluate'
-            )}
-          </button>
         </div>
 
         {/* Chat Messages */}
-        <div className="flex-1 overflow-y-auto bg-card p-6">
-          <div className="max-w-3xl mx-auto space-y-4">
+        <div className="flex-1 overflow-y-auto p-6" style={{ background: '#FFFDF5' }}>
+          <div className="max-w-3xl mx-auto space-y-5">
             {isLoading ? (
-              <div className="flex items-center justify-center py-12">
+              <div className="flex items-center justify-center py-16">
                 <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
               </div>
             ) : messages.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+              <div className="text-center py-16">
+                <div className="w-16 h-16 rounded-full bg-[var(--muted)] flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <p className="text-muted-foreground font-medium">No messages yet</p>
+                <p className="text-[0.813rem] text-muted-foreground mt-1">Start the conversation as a customer!</p>
               </div>
             ) : (
               messages.map((message) => (
@@ -316,25 +341,37 @@ export default function SimulatePage() {
                   key={message.id}
                   className={`flex flex-col ${
                     message.role === "user" ? "items-end" : "items-start"
-                  }`}
+                  } animate-fade-up`}
                 >
-                  <p className="text-xs text-muted-foreground mb-1">
-                    {message.role === "user" ? "You — Customer" : "Agent"}
-                  </p>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    {message.role === "assistant" && (
+                      <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                        <Bot className="w-3.5 h-3.5 text-primary-foreground" />
+                      </div>
+                    )}
+                    <p className="text-[0.70rem] text-muted-foreground font-medium uppercase tracking-wide">
+                      {message.role === "user" ? "You (Customer)" : "Agent"}
+                    </p>
+                    {message.role === "user" && (
+                      <div className="w-6 h-6 rounded-full bg-[#221D23] flex items-center justify-center">
+                        <User className="w-3.5 h-3.5 text-white" />
+                      </div>
+                    )}
+                  </div>
                   <div
-                    className={`max-w-md p-3 rounded-lg ${
+                    className={`max-w-md p-4 ${
                       message.role === "user"
-                        ? "bg-card border border-foreground text-foreground"
-                        : "bg-primary text-primary-foreground"
+                        ? "bg-[#221D23] text-white rounded-[var(--radius-lg)] rounded-tr-[var(--radius-sm)]"
+                        : "bg-white border border-[var(--border)] rounded-[var(--radius-lg)] rounded-tl-[var(--radius-sm)] shadow-[var(--shadow-sm)]"
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">
+                    <p className="text-[0.875rem] whitespace-pre-wrap leading-relaxed">
                       {message.role === "assistant" 
                         ? renderFormattedText(message.content) 
                         : message.content}
                     </p>
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-[0.70rem] text-muted-foreground mt-1.5">
                     {formatTime(message.created_at)}
                   </p>
                 </div>
@@ -343,12 +380,17 @@ export default function SimulatePage() {
 
             {/* Typing Indicator */}
             {isSending && (
-              <div className="flex flex-col items-start">
-                <p className="text-xs text-muted-foreground mb-1">Agent</p>
-                <div className="bg-primary px-4 py-3 rounded-lg flex items-center gap-1">
-                  <span className="w-2 h-2 bg-primary-foreground/70 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-2 h-2 bg-primary-foreground/70 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-2 h-2 bg-primary-foreground/70 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              <div className="flex flex-col items-start animate-fade-up">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                    <Bot className="w-3.5 h-3.5 text-primary-foreground" />
+                  </div>
+                  <p className="text-[0.70rem] text-muted-foreground font-medium uppercase tracking-wide">Agent</p>
+                </div>
+                <div className="bg-white border border-[var(--border)] px-5 py-4 rounded-[var(--radius-lg)] rounded-tl-[var(--radius-sm)] shadow-[var(--shadow-sm)] flex items-center gap-1.5">
+                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                  <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
                 </div>
               </div>
             )}
@@ -359,29 +401,31 @@ export default function SimulatePage() {
 
         {/* Error Display */}
         {error && (
-          <div className="bg-red-50 border-t border-red-200 px-4 py-2">
-            <p className="text-sm text-red-600 text-center">{error}</p>
+          <div className="bg-[var(--tag-red-bg)] border-t border-[var(--destructive)]/20 px-6 py-3">
+            <p className="text-[0.813rem] text-[var(--tag-red-text)] text-center font-medium">{error}</p>
           </div>
         )}
 
         {/* Input Bar */}
-        <div className="bg-card border-t border-border p-4 shrink-0">
+        <div className="bg-white/80 backdrop-blur-md border-t border-[var(--border)] p-4 shrink-0">
           <div className="max-w-3xl mx-auto">
             <div className="flex items-center gap-3">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Type as the customer..."
-                disabled={isSending}
-                className="flex-1 px-4 py-3 border border-border rounded-lg bg-card text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-              />
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Type as the customer..."
+                  disabled={isSending}
+                  className="form-input pr-12 rounded-full"
+                />
+              </div>
               <button
                 onClick={sendMessage}
                 disabled={!inputValue.trim() || isSending}
-                className="bg-foreground text-card p-3 rounded-lg hover:bg-foreground/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-12 h-12 rounded-full bg-[#221D23] text-white flex items-center justify-center hover:bg-[#221D23]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-[var(--shadow-md)]"
               >
                 {isSending ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -390,8 +434,8 @@ export default function SimulatePage() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-muted-foreground mt-2 text-center">
-              Enter to send · Playing as: <span className="text-foreground">Customer</span>
+            <p className="text-[0.70rem] text-muted-foreground mt-2 text-center">
+              Press <kbd className="px-1.5 py-0.5 bg-[var(--muted)] rounded text-[0.65rem] font-mono">Enter</kbd> to send · Playing as <span className="font-semibold text-foreground">Customer</span>
             </p>
           </div>
         </div>
